@@ -10,6 +10,11 @@ using namespace std;
 //not exported
 double randBeta(double alpha, double beta, mt19937 * rNum) {
 
+	//input checking
+	if (alpha + beta == 0 || alpha < 0 || beta < 0){
+		Rcpp::stop("invalid alpha or beta to randBeta");
+	}
+	
 	// initiate random gammas
 	gamma_distribution<double> rGamma1 (alpha,1); //alpha of beta distribution
 	gamma_distribution<double> rGamma2 (beta,1); //beta of beta distribution
@@ -25,7 +30,21 @@ double randBeta(double alpha, double beta, mt19937 * rNum) {
 // this function generates random numbers from a Dirichlet distribution
 //not exported
 vector<double> randDirich(vector<double> alphas, mt19937 * rNum) {
+
 	int dim = alphas.size(); //get number of dimensions of requested Dirichlet
+	
+	//input checking
+	double sumA = 0;
+	for(int i=0; i < dim; i++){
+		if(alphas[i] < 0){
+			Rcpp::stop("invalid alphas to randDirichlet");
+		}
+		sumA += alphas[i];
+	}
+	if (sumA == 0){
+		Rcpp::stop("invalid alphas to randDirichlet");
+	}
+	
 	// allocate storage of random gammas
 	vector<double> rGammaValues (dim);
 	double sum = 0; //sum for normalizing
