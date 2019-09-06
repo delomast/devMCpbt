@@ -10,5 +10,6 @@
 #include <vector>
 double randBeta(double alpha, double beta, std::mt19937 * rNum);
 std::vector<double> randDirich(std::vector<double> alphas, std::mt19937 * rNum);
+int sampleC(std::vector<int> items, std::vector<double> probs, std::mt19937 * rNum);
 
 #endif

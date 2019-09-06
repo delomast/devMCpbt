@@ -36,30 +36,32 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 	// initiate random number generator
 	mt19937 rg (seed);
 	mt19937 * rgPoint = &rg; //pointer to random number generator to pass to subfunctions
-	
 
-	//allocate result storage
+	if(thin < 1) Rcpp::stop("thin must be 1 or greater.");
+
+	//allocate result storage - clipped prop
 	int NumResults = (iter - burnIn) / thin; //number of results to store
 	Rcpp::NumericVector r_Propclip(NumResults, NA_REAL); //prop clipped
-	
+
 	////////////////////////////////
 	//get prop clipped estimates
 	////////////////////////////////
 	if (clippedBool){
 		r_Propclip = MCMCclip(Nclip, Nunclip, clipPrior, NumResults, rgPoint);
 	}
-	
 	////////////////////////////////
 	//get other estimates
 	///////////////////////////////
 	
 	//set quantities frequently used
 	int nGroups = groups.size(); //number of groups in piTot, including wild/unassigned
+	vector <int> groupsC (nGroups); //needs to be vector of ints to pass to sampleC
 	vector <double> priorPlusOhnc (nGroups); //creating prior plus observed PBT assigned
 	vector <double> untagRates (nGroups);
 	for(int i=0; i < nGroups; i++){
 		priorPlusOhnc[i] = piTotPrior[i] + ohnc[i];
 		untagRates[i] = 1 - t[i];
+		groupsC[i] = groups[i];
 	}
 	int tempCol; //stores position of vector to take a value from
 	
@@ -77,7 +79,7 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		
 	}
 	vector <int> z; //declare vector of z's
-	for(int i=0; i < initZ.size(); i++){
+	for(int i=0, max=initZ.size(); i < max; i++){
 		z.push_back(initZ[i]); //initialize with given values
 	}
 	int nZ = z.size(); //number of untagged fish
@@ -95,15 +97,14 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 	int nVar = values.size(); //number of variables
 	vector <vector <int>> valuesC (nVar); //possible values of variables represented as (positive) ints, (with -9 in data indicates missing)
 	vector <vector <vector <double>>> pi_V (nVar); //a list each variable, with proportions of each group for that variable
-	vector <vector <int>> tempCounts (nVar); //temporary counts for each variable - used in calculations
+	vector <vector <double>> tempCounts (nVar); //temporary counts for each variable - used in calculations - using double b/c prior added to it
 
 	vector <vector <vector <double>>> priorPlusOhncV (nVar); //creating prior plus observed PBT assigned
-
 	for(int i=0; i<nVar; i++){
 		//add values to valuesC
 		Rcpp::NumericVector tempV = values[i]; //pull NumericVector out of the list of the possible values for a variable
 		valuesC[i].assign(tempV.size(), 0);
-		for(int j=0; j<tempV.size(); j++){
+		for(int j=0, max=tempV.size(); j<max; j++){
 			valuesC[i][j] = tempV[j];
 		}
 		//add values to temporary counts
@@ -115,7 +116,7 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		for(int j=0; j < nGroups; j++){ //for each row - group
 			vector <double> tempVec (tempV.size()); //make empty vector to accept values for one group
 			vector <double> tempVecPrior (tempV.size()); //make empty vector to accept values for one group
-			for(int k=0; k < tempV.size(); k++){//for each column -variable value
+			for(int k=0, max=tempV.size(); k < max; k++){//for each column -variable value
 				tempVec[k] = tempVmat(j,k); //take value from initial values matrix and assign to vector
 				tempVecPrior[k] = tempVohnc(j,k) + tempVprior(j,k); //take value from initial values matrix and assign to vector
 			}
@@ -123,12 +124,20 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 			priorPlusOhncV[i].push_back(tempVec); //add prior + ohnc values for variable i and group j
 		}
 	}
+	//////////////////////////////////
+	//allocate result storage
+	Rcpp::NumericMatrix r_PiTot(NumResults, nGroups); //pi_Tot clipped
+	int currentEntry = 0; //keep track of what entry to record next
 	
-
+	///////////////////////////////////
+	
+	////////////////////////////////////////////////////
 	//cycle through iterations
-	for (int r=0; r < iter; r++){
+	for (int r=0, maxIter = NumResults + burnIn; r < maxIter; r++){
+		int thin2 = 1;
+		if(r >= burnIn) thin2 = thin; //this runs the number of burnin iterations, then runs enough to get the specified number of recordings
 		//cycle through thinning reps between recording values
-		for (int t=0; t < thin; t++){
+		for (int t=0; t < thin2; t++){
 			
 			// sample from pi_tot
 			for(int i=0; i < nGroups; i++){ //calculating the alphas of the Dirichlet
@@ -140,19 +149,19 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 			for(int v=0; v < nVar; v++){ //cycle through variables
 				for(int g=0; g < nGroups; g++){ //cycle through groups
 					tempCounts[v].assign(valuesC[v].size(),0); //zero the vector
-					for(int i=0; i < valuesC[v].size(); i++){ //cycle through categories to count
+					for(int i=0, max = valuesC[v].size(); i < max; i++){ //cycle through categories to count
 						//now count all in that group with that value for that variable
 						for(int j=0; j < nZ; j++){ //for each untagged individual
-							if(z[j] == groups[g] && v_ut(j,v) == valuesC[v][i]) //v_ut is kept as a NumericMatrix b/c no manipulation needed. row is indiv col is variable
-								tempCounts[v][i] += 1; //this is utVcounts equivalent in the R script
+							if(z[j] == groupsC[g] && v_ut(j,v) == valuesC[v][i]) //v_ut is kept as a NumericMatrix b/c no manipulation needed. row is indiv col is variable
+								tempCounts[v][i]++; //this is utVcounts equivalent in the R script
 						}
 					}
 					//now tempCounts has the counts for that group and variable
 					//so now add to ohnc counts, prior, and then sample from Dirichlet
-					for(int i=0; i < valuesC[v].size(); i++){
+					for(int i=0, max = valuesC[v].size(); i < max; i++){
 						tempCounts[v][i] += priorPlusOhncV[v][g][i];
 					}
-					pi_V[v][g] = randDirich(tempCounts, rgPoint);
+					pi_V[v][g] = randDirich(tempCounts[v], rgPoint);
 				}
 			}
 			
@@ -165,49 +174,47 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 				//now refine probs using pi_V and the observed variables
 				for(int v=0; v < nVar; v++){
 					if(v_ut(i,v) == -9) continue; //if value is missing, skip
-					for(int g=0; g < nGroups; g++){ //for each group
-						//find position of that value - they should be in order, so if speed is a big issue, can replace this just using the value as the position
-						for(int k=0; k < valuesC[v].size(); k++){
-							if(valuesC[v][k] == v_ut(i,v)){
-								tempCol = k;
-								break;
-							}
+					//find position of that value - they should be in order, so if speed is a big issue, can replace this just using the value as the position
+					for(int k=0, max = valuesC[v].size(); k < max; k++){
+						if(valuesC[v][k] == v_ut(i,v)){
+							tempCol = k; //if this nevers happens, will use previous value, which would be a problem. Only happens when input is bad.
+							break;
 						}
+					}
+					for(int g=0; g < nGroups; g++){ //for each group
 						// find probability of that value for that group and multiply
-						tempZprobs[g] *= pi_V[v][g][k];
+						tempZprobs[g] *= pi_V[v][g][tempCol];
 					}
 				}
 				// now sample z for that individual
-				/* left off here
-				 * Maybe need to define a function that is equivalent of R's sample
-				 * This could help streamline the code
-				 */
+				z[i] = sampleC(groupsC, tempZprobs, rgPoint);
+				
 			}
-			
-			
-#sample from z's
-	for(i in 1:length(z)){
-		tempZprobs <- piTot * (1-t) # these are probs for each group not taking into account observed variables
-		for(v in names_variables){
-			if(is.na(v_ut[[v]][i])){ # if value is missing, ignore this variable for this individual
-				next
-			}
-			tempCol <- which(values[[v]] == v_ut[[v]][i]) #this is the column of pi_V that has the proportions for the category observed in that individual
-			tempZprobs <- tempZprobs*pi_V[[v]][,tempCol]
-		}
-		z[i] <- sample(groups, 1, prob = tempZprobs) #tempZprobs is normalized by R
-	}
 			
 			
 			// calculate oUT for ease of later steps
+			oUT.assign(nGroups, 0); //clear vector
+			for(int i=0; i < nZ; i++){ //for each z
+				for(int g=0; g < nGroups; g++){ //for each group
+					if(z[i] == groupsC[g]){
+						oUT[g] += 1; // add to that group
+						break;
+					}
+				}
+			}
 			
-		}
+		} //end of thinning loop
 		//record values
-		
-		//check user interrupt every 500 recordings
-		if (r % 500 == 0){
-			Rcpp::checkUserInterrupt();
+		if(r >= burnIn){
+			for(int g=0; g < nGroups; g++){
+				r_PiTot(currentEntry, g) = piTot[g];
+			}
+			
+			currentEntry++;
 		}
+		
+		//check user interrupt approx every 500 iterations
+		if ((r*thin2) % 500 == 0) Rcpp::checkUserInterrupt();
 	}
 	
 	
@@ -217,7 +224,6 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 
 	//organize output to return to R
 	
-	Rcpp::NumericVector t(1);
-	t[0] = 3;
-	return t;
+
+	return r_PiTot;
 }

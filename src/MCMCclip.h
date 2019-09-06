@@ -7,6 +7,6 @@
 
 #include <Rcpp.h>
 #include <random>
-Rcpp::NumericVector MCMCclip(int Nclip, int Nunclip, Rcpp::NumericVector clipPrior, int NumResults, std::mt19937 * rNum)
+Rcpp::NumericVector MCMCclip(int Nclip, int Nunclip, Rcpp::NumericVector clipPrior, int NumResults, std::mt19937 * rNum);
 
 #endif
