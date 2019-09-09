@@ -15,6 +15,11 @@ using namespace std;
 //
 //groups is numeric vector of all the groups ie 1,2,3,...in the same order as all other group based variables
 //
+//nPBT is the number of PBT groups
+//GSI_values are the possible values in the GSI category
+//gsiUT are the values of the untagged
+//
+//
 //values is a list of NumericVectors giving the different categories for each variable
 //pi_VInitial is a list of NumericMatrices giving the composition of each variable(matrix) by group(rows) and values (column)
 //pi_Vohnc is a list of NumericMatrices giving the counts of ohnc each variable(matrix) by group(rows) and values (column)
@@ -28,6 +33,9 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
                           int Nclip, int Nunclip, Rcpp::NumericVector clipPrior, bool clippedBool, //prop clipped parameters
                           Rcpp::NumericVector piTotPrior, Rcpp::NumericVector ohnc, Rcpp::NumericVector piTotInitial, //piTotal parameters
                           Rcpp::NumericVector oUTInitial, Rcpp::NumericVector groups,
+                          int nPBT, Rcpp::NumericVector GSI_values, Rcpp::NumericVector gsiUT, //pi_gsi parameters
+                          Rcpp::NumericMatrix pi_gsiInitial, Rcpp::NumericMatrix prior_pi_gsi,
+                          Rcpp::NumericMatrix ohnc_gsi,
                           Rcpp::List values, Rcpp::List pi_VInitial, Rcpp::List pi_Vohnc, Rcpp::List pi_Vprior, //pi_V parameters
                           Rcpp::NumericMatrix v_ut, 
                           Rcpp::NumericVector initZ, Rcpp::NumericVector t //z parameters
@@ -55,6 +63,7 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 	
 	//set quantities frequently used
 	int nGroups = groups.size(); //number of groups in piTot, including wild/unassigned
+	int nGSI = nGroups - nPBT;
 	vector <int> groupsC (nGroups); //needs to be vector of ints to pass to sampleC
 	vector <double> priorPlusOhnc (nGroups); //creating prior plus observed PBT assigned
 	vector <double> untagRates (nGroups);
@@ -63,12 +72,23 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		untagRates[i] = 1 - t[i];
 		groupsC[i] = groups[i];
 	}
+	vector <vector <double>> priorPlusOhnc_pi_gsi;
+	for(int i=0; i<nPBT; i++){
+		vector <double> tempVec (nGSI, 0);
+		for(int j=0; j<nGSI; j++){
+			tempVec[j] = prior_pi_gsi(i,j) + ohnc_gsi(i,j);
+		}
+		priorPlusOhnc_pi_gsi.push_back(tempVec);
+	}
+	
 	int tempCol; //stores position of vector to take a value from
+	int tempInt; //temporary counting value
 	
 	
 	//define temporary variables used in calculations
 	vector <double> piTot_tempAlphas (nGroups, 0);
 	vector <double> tempZprobs (nGroups, 0);
+	vector <double> pi_gsi_tempAlphas (nGSI, 0);
 	
 	//define main variables and set initial values
 	vector <double> piTot (nGroups, 0); //proportions of each group in the population
@@ -78,6 +98,16 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		oUT[i] = oUTInitial[i];
 		
 	}
+	
+	vector <vector <double>> pi_gsi;
+	for(int i=0; i < nGroups; i++){
+		vector <double> tempVec (nGSI, 0);
+		for(int j=0; j < nGSI; j++){
+			tempVec[j] = pi_gsiInitial(i,j);
+		}
+		pi_gsi[i] = tempVec;
+	}
+	
 	vector <int> z; //declare vector of z's
 	for(int i=0, max=initZ.size(); i < max; i++){
 		z.push_back(initZ[i]); //initialize with given values
@@ -164,6 +194,24 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 					pi_V[v][g] = randDirich(tempCounts[v], rgPoint);
 				}
 			}
+			
+			// NOTE- when adding in accounting for GSI variability, priorPlusOhnc_pi_gsi will
+			//   have to be calculated in each iteration
+			// sample from pi_gsi's - for PBT groups only
+			for(int i=0; i<nPBT; i++){
+				for(int j=0; i < nGSI; j++){ // calculating the alphas of the Dirichlet
+					//count up z's with this GSI value
+					tempInt = 0;
+					for(int zi=0; zi<nZ; zi++){
+						if(z[zi] == groupsC[i] && gsiUT[zi] == GSI_values[j]) tempInt++;
+					}
+					pi_gsi_tempAlphas[j] = priorPlusOhnc_pi_gsi[i][j] + tempInt;
+				}
+				pi_gsi[i] = randDirich(piTot_tempAlphas, rgPoint);
+				
+			}
+			
+			
 			
 			// sample from z's
 			for(int i=0; i < nZ; i++){ //for each z
