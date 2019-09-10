@@ -60,7 +60,7 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 	////////////////////////////////
 	//get other estimates
 	///////////////////////////////
-	
+
 	//set quantities frequently used
 	int nGroups = groups.size(); //number of groups in piTot, including wild/unassigned
 	int nGSI = nGroups - nPBT;
@@ -98,14 +98,14 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		oUT[i] = oUTInitial[i];
 		
 	}
-	
+
 	vector <vector <double>> pi_gsi;
 	for(int i=0; i < nGroups; i++){
 		vector <double> tempVec (nGSI, 0);
 		for(int j=0; j < nGSI; j++){
 			tempVec[j] = pi_gsiInitial(i,j);
 		}
-		pi_gsi[i] = tempVec;
+		pi_gsi.push_back(tempVec);
 	}
 	
 	vector <int> z; //declare vector of z's
@@ -199,7 +199,7 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 			//   have to be calculated in each iteration
 			// sample from pi_gsi's - for PBT groups only
 			for(int i=0; i<nPBT; i++){
-				for(int j=0; i < nGSI; j++){ // calculating the alphas of the Dirichlet
+				for(int j=0; j < nGSI; j++){ // calculating the alphas of the Dirichlet
 					//count up z's with this GSI value
 					tempInt = 0;
 					for(int zi=0; zi<nZ; zi++){
@@ -219,13 +219,27 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 				for(int g=0; g < nGroups; g++){
 					tempZprobs[g] = piTot[g] * untagRates[g];
 				}
-				//now refine probs using pi_V and the observed variables
+				// take into account observed GSI assignment
+				tempCol = 0;
+				for(int j=0; j<nGSI; j++){ //determine which column corresponds to the observed value
+					if(gsiUT[i] == GSI_values[j]){ //if observed GSI for that individual matches GSI_values[j]
+						tempCol = j;
+						break;
+					}
+				}
+				//now multiply by GSI proportions
+				for(int g=0; g < nGroups; g++){
+					tempZprobs[g] *= pi_gsi[g][tempCol];
+				}
+				
+				//now refine probs using pi_V and the observed variables - if they are present
 				for(int v=0; v < nVar; v++){
+					tempCol = 0;
 					if(v_ut(i,v) == -9) continue; //if value is missing, skip
 					//find position of that value - they should be in order, so if speed is a big issue, can replace this just using the value as the position
 					for(int k=0, max = valuesC[v].size(); k < max; k++){
 						if(valuesC[v][k] == v_ut(i,v)){
-							tempCol = k; //if this nevers happens, will use previous value, which would be a problem. Only happens when input is bad.
+							tempCol = k; //if this never happens, will use 0, which would be a problem. Only happens when input is bad.
 							break;
 						}
 					}
