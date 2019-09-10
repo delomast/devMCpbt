@@ -3,8 +3,8 @@ Type: Package
 Title: What the Package Does in One 'Title Case' Line
 Version: 1.0
 Date: 2019-09-04
-Author: Your Name
-Maintainer: Your Name <your@email.com>
+Author: Thomas Delomas
+Maintainer: Thomas Delomas <thomas.delomas@idfg.idaho.gov>
 Description: One paragraph description of what the package
       does as one or more full sentences.
 License: MIT + file LICENSE
