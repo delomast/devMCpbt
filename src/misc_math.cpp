@@ -105,3 +105,17 @@ int sampleC(vector<int> items, vector<double> probs, mt19937 * rNum) {
 	
 	return result;
 }
+
+//Convert vector of vectors to NumericMatrix
+//first level of vector stores rows
+//assumes all seocnd level are same length
+//assumes at least one row
+//not exported
+Rcpp::NumericMatrix vecVecNumMat(vector<vector<double>> input){
+	Rcpp::NumericMatrix output (input.size(), input[0].size());
+	for(int i=0, max = input.size(); i<max; i++){ //for each row
+		for(int j=0, max2 = input[0].size(); j<max2; j++){ //for each column
+			output(i,j) = input[i][j];
+		}
+	}
+}

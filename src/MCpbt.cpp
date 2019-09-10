@@ -29,7 +29,7 @@ using namespace std;
 //  -9 is missing
 //t is tag rates in same order as groups
 // [[Rcpp::export]]
-Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall parameters for the chain
+Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall parameters for the chain
                           int Nclip, int Nunclip, Rcpp::NumericVector clipPrior, bool clippedBool, //prop clipped parameters
                           Rcpp::NumericVector piTotPrior, Rcpp::NumericVector ohnc, Rcpp::NumericVector piTotInitial, //piTotal parameters
                           Rcpp::NumericVector oUTInitial, Rcpp::NumericVector groups,
@@ -156,8 +156,27 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 	}
 	//////////////////////////////////
 	//allocate result storage
-	Rcpp::NumericMatrix r_PiTot(NumResults, nGroups); //pi_Tot clipped
 	int currentEntry = 0; //keep track of what entry to record next
+	
+	Rcpp::NumericMatrix r_PiTot(NumResults, nGroups); //pi_Tot unclipped
+	Rcpp::NumericMatrix r_Z(NumResults, nZ); //z
+	
+	//fix using new function vecVecNumMat()
+	//these are broken
+	Rcpp::List r_pi_gsi (nGroups); //pi_gsi
+	for(int i=0;i<nGroups;i++){
+		r_pi_gsi[i] = Rcpp::NumericMatrix(NumResults, nGSI);
+	}
+	Rcpp::List r_pi_V (nVar); //pi_V
+	for (int i=0; i<nVar;i++){
+		r_pi_V[i] = Rcpp::List (nGroups);
+		for(int j=0;j<nGroups;j++){
+			r_pi_V[i][j] = Rcpp::NumericMatrix(NumResults, valuesC[i].size());
+		}
+		
+	}
+	//end broken
+	
 	
 	///////////////////////////////////
 	
@@ -268,9 +287,29 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		} //end of thinning loop
 		//record values
 		if(r >= burnIn){
+			//piTot
 			for(int g=0; g < nGroups; g++){
 				r_PiTot(currentEntry, g) = piTot[g];
 			}
+			//z
+			for(int i=0;i<nZ;i++){
+				r_Z(currentEntry,i) = z[i];
+			}
+			//pi_gsi
+			for(int i=0;i<nGroups;i++){
+				for(int j=0;j<nGSI;j++){
+					r_pi_gsi[i](currentEntry,j) = pi_gsi[i][j];
+				}
+			}
+			// Rcpp::List r_pi_V (nVar); //pi_V
+			// for (int i=0; i<nVar;i++){
+			// 	r_pi_V[i] = Rcpp::List (nGroups);
+			// 	for(int j=0;j<nGroups;j++){
+			// 		r_pi_V[i][j] = Rcpp::NumericMatrix(NumResults, valuesC[i].size());
+			// 	}
+			// 	
+			// }
+			
 			
 			currentEntry++;
 		}
@@ -279,13 +318,9 @@ Rcpp::NumericVector MCpbt(int iter, int burnIn, int thin, unsigned int seed, //o
 		if ((r*thin2) % 500 == 0) Rcpp::checkUserInterrupt();
 	}
 	
-	
-	// int dims = alphas.size();
-	// Rcpp::NumericVector t(dims);
-	// t = randDirich(alphas, rgPoint); //random beta computed from two random gammas
 
 	//organize output to return to R
-	
+	Rcpp::List outputList = Rcpp::List::create(Rcpp::Named("piTot") = r_PiTot);
 
-	return r_PiTot;
+	return outputList;
 }

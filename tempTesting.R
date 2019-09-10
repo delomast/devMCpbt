@@ -164,12 +164,17 @@ varMat <- list(
 	matrix(c(rep(c(.4,.6), 3), rep(c(.6,.4), 3)), nrow = 6, ncol = 2, byrow = TRUE)
 )
 
+## two variables
 testData <- generatePBTGSIdata(sampRate = .18, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
 										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
 				    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat)
+
+## one variable
 testData <- generatePBTGSIdata(sampRate = .18, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
 										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
 				    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat[1])
+
+## no variables
 testData <- generatePBTGSIdata(sampRate = .18, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
 										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
 				    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = NA)
