@@ -2,7 +2,6 @@
 #include <random>
 #include <vector>
 #include "misc_math.h"
-#include "MCMCclip.h"
 
 using namespace std;
 
@@ -11,7 +10,6 @@ using namespace std;
 
 //This is the main function to run the MCMC composition model
 //
-//right now it is in development and so the input and output chagne based on checking
 //
 //groups is numeric vector of all the groups ie 1,2,3,...in the same order as all other group based variables
 //
@@ -30,7 +28,6 @@ using namespace std;
 //t is tag rates in same order as groups
 // [[Rcpp::export]]
 Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall parameters for the chain
-                          int Nclip, int Nunclip, Rcpp::NumericVector clipPrior, bool clippedBool, //prop clipped parameters
                           Rcpp::NumericVector piTotPrior, Rcpp::NumericVector ohnc, Rcpp::NumericVector piTotInitial, //piTotal parameters
                           Rcpp::NumericVector oUTInitial, Rcpp::NumericVector groups,
                           int nPBT, Rcpp::NumericVector GSI_values, Rcpp::NumericVector gsiUT, //pi_gsi parameters
@@ -49,20 +46,9 @@ Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall pa
 
 	if(thin < 1) Rcpp::stop("thin must be 1 or greater.");
 
-	//allocate result storage - clipped prop
 	int NumResults = (iter - burnIn) / thin; //number of results to store
-	Rcpp::NumericVector r_Propclip(NumResults, NA_REAL); //prop clipped
 
-	////////////////////////////////
-	//get prop clipped estimates
-	////////////////////////////////
-	if (clippedBool){
-		r_Propclip = MCMCclip(Nclip, Nunclip, clipPrior, NumResults, rgPoint);
-	}
-	////////////////////////////////
-	//get other estimates
-	///////////////////////////////
-
+	
 	//set quantities frequently used
 	int nGroups = groups.size(); //number of groups in piTot, including wild/unassigned
 	int nGSI = nGroups - nPBT;

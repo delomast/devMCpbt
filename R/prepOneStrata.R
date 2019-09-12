@@ -19,12 +19,25 @@
 #' @param variableValues a list, in the order of \code{variableCols} with entries having the values expected for each variable. This
 #'   is helpful to make sure the same variable values are estiamted in each strata even if one value is not observed in all strata. If
 #'   NA, it uses the values present in the dataset.
-#' @param variableValuesOth Sameas variableValues, but for variableColsOth
+#' @param variableValuesOth Same as variableValues, but for variableColsOth
 #' 
 
 prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 verbose = TRUE, GSIgroups = NA,
 									 variableValues = NA, variableValuesOth = NA){
+	#turn adFinCol into boolean if necessary
+	if(!is.logical(trapData[,adFinCol])){
+		nonValid <- sum(!is.na(trapData[,adFinCol]) & !(trapData[,adFinCol] %in% c("AD", "AI")))
+		if(nonValid > 0){
+			errMessage <- paste(nonValid, "observations that are not valid options for", adFinCol,
+				"\nthe adFinCol must either be a logical variable, with TRUE for ad-intact,", 
+				"or be a character variable with values of AD and AI for ad-clipped and ad-intact, respectively.", 
+				"\n Missing data should have values of NA.")
+			stop(errMessage)
+		}
+		trapData[,adFinCol] <- trapData[,adFinCol] == "AI"
+		trapData[,adFinCol] <- as.logical(trapData[,adFinCol])
+	}
 	
 	### first filter data to either Ad-intact or Ad-clipped
 	if(AI) {
@@ -35,8 +48,8 @@ prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), 
 		stop("Non-boolean input for AI in prepOneStrataAI")
 	}
 	numObs <- nrow(trapData)
-	if(verbose & AI) cat("\nUsing", numObs, "ad-intact observations.\n")
-	if(verbose & !AI) cat("\nUsing", numObs, "ad-clipped observations.\n")
+	if(verbose & AI) cat("\nFound", numObs, "ad-intact observations.\n")
+	if(verbose & !AI) cat("\nFound", numObs, "ad-clipped observations.\n")
 	trapData <- trapData[!is.na(trapData[,PBTcol]) & !is.na(trapData[,GSIcol]),]
 	if(verbose) cat("\nDiscarding", numObs - nrow(trapData), "observations that were not attempted to be PBT and GSI assigned.\n")
 	

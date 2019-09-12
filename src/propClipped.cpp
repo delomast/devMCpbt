@@ -10,7 +10,7 @@ using namespace std;
 /*This is the function to estimate the proportion clipped.
 	The model has this separate from all other parameters,
  	so estimating it separately in a separate function.
- 	Don't truly need MCMC to estiamte this - is simple binomial -
+ 	Probably don't really need Monte Carlo to estimate this - is simple binomial -
  	but inclusion makes calculating uncertainty in complete composition
  	easy by just multiplying within all the iterations. It is also concievable
  	that later version will treat sepearte strata as related, for example as
@@ -19,8 +19,13 @@ using namespace std;
  	possibilities easier.
 */
 //
-// not exported
-Rcpp::NumericVector MCMCclip(int Nclip, int Nunclip, Rcpp::NumericVector clipPrior, int NumResults, mt19937 * rNum) {
+// [[Rcpp::export]]
+Rcpp::NumericVector propClipped(int Nclip, int Nunclip, int NumResults, unsigned int seed,
+                             Rcpp::NumericVector clipPrior = Rcpp::NumericVector::create(1,1)) {
+	
+	// initiate random number generator
+	mt19937 rg (seed);
+	mt19937 * rgPoint = &rg; //pointer to random number generator to pass to subfunctions
 	
 	//allocate result storage
 	Rcpp::NumericVector r_Propclip (NumResults);
@@ -30,7 +35,7 @@ Rcpp::NumericVector MCMCclip(int Nclip, int Nunclip, Rcpp::NumericVector clipPri
 	double postB = clipPrior[1] + Nunclip;
 	//no need to burnin and thin, this is just sampling a random Beta
 	for(int i=0; i < NumResults; i++){
-		r_Propclip[i] = randBeta(postA, postB, rNum);
+		r_Propclip[i] = randBeta(postA, postB, rgPoint);
 	}
 	
 	return r_Propclip;
