@@ -47,6 +47,8 @@ Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall pa
 	if(thin < 1) Rcpp::stop("thin must be 1 or greater.");
 
 	int NumResults = (iter - burnIn) / thin; //number of results to store
+	
+	if (NumResults < 1) Rcpp::stop("iter, burnIn, and thin parameters lead to no results being recorded.");
 
 	
 	//set quantities frequently used

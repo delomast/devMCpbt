@@ -1,8 +1,7 @@
 #' This function takes data in a standard table format and prepares it for one strata for MCpbt
 #' 
 #' @param trapData dataframe with data for fish sampled from one strata - trap data for dam escapement
-#' @param tags dataframe with tag rates for the groups to consider as present in that strata. This should
-#'   NOT include the Unassigned group
+#' @param tags dataframe with tag rates for all groups. This should NOT include the Unassigned group.
 #' @param GSIcol column name of column containing GSI assignments. If NA, the function gives all fish the same gsi assignment,
 #'   which is equivalent to not having GSI information.
 #' @param PBTcol column name of column containing PBT assignments
@@ -11,20 +10,20 @@
 #' @param variableColsOth vector of column names of columns containing the variables to estimate composition but 
 #'   NOT inform the group selection for PBT untagged fish
 #' @param adFinCol column name of column containing adipose fin status - TRUE being intact FALSE being clipped, NA missing
-#' @param physTagCol column name of column containing physTag status
 #' @param AI TRUE to analyse ad-intact fish, FALSE to analyze ad-clipped fish
 #' @param verbose TRUE to print some messages, FALSE to not
 #' @param GSIgroups These are the values for all the GSI groups that you expect to be present in the population. If NA, then
 #'   the values are taken to be all the unique values in the GSI column in the dataset.
 #' @param variableValues a list, in the order of \code{variableCols} with entries having the values expected for each variable. This
 #'   is helpful to make sure the same variable values are estiamted in each strata even if one value is not observed in all strata. If
-#'   NA, it uses the values present in the dataset.
+#'   a value other than a list is given (for example, NA), it uses the values present in the dataset.
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
 #' 
+#' @export
 
-prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
+prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 verbose = TRUE, GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA){
+									 variableValues = NA, variableValuesOth = NA, strataName = NA){
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
 		nonValid <- sum(!is.na(trapData[,adFinCol]) & !(trapData[,adFinCol] %in% c("AD", "AI")))
@@ -53,9 +52,11 @@ prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), 
 	trapData <- trapData[!is.na(trapData[,PBTcol]) & !is.na(trapData[,GSIcol]),]
 	if(verbose) cat("\nDiscarding", numObs - nrow(trapData), "observations that were not attempted to be PBT and GSI assigned.\n")
 	
+	# filter tags to only be observed groups
+	tags <- tags[tags[,1] %in% unique(trapData[,PBTcol]),]
 	
 	### now calculate input values
-	if(is.na(GSIgroups)) GSIgroups <- sort(unique(trapData[,GSIcol])) # these are the different GSI groups in the dataset
+	if(is.na(GSIgroups[1])) GSIgroups <- sort(unique(trapData[,GSIcol])) # these are the different GSI groups in the dataset
 	nGSI <- length(GSIgroups) #number of wild GSI groups
 	nPBT <- nrow(tags) #number of PBT groups
 
@@ -85,7 +86,7 @@ prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), 
 	for(v in names_variables){
 		v_ut[[v]] <- trapData[untagBool, v] # these are the values for Var for untagged fish
 	}
-	if (is.na(variableValues)){
+	if (!is.list(variableValues)){
 		values <- list() # this is list of the categories in each variable
 		for(v in names_variables){
 			values[[v]] <- sort(unique(trapData[,v])) # these are the categories in var
@@ -113,7 +114,7 @@ prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), 
 	for(v in names_variablesOth){
 		v_utOth[[v]] <- trapData[untagBool, v] # these are the values for Var for untagged fish
 	}
-	if (is.na(variableValuesOth)){
+	if (!is.list(variableValuesOth)){
 		valuesOth <- list() # this is list of the categories in each variable
 		for(v in names_variablesOth){
 			valuesOth[[v]] <- sort(unique(trapData[,v])) # these are the categories in var
@@ -275,6 +276,9 @@ prepOneStrataAI <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), 
 		pi_VohncOth = V_ohncOth, pi_VpriorOth = prior_piVOth,
 		v_utOth = v_utMatOth,
 		#then all keys
-		groupsKey = groupsKey, GSIkey = GSIkey, variKey = variKey, variKeyOth = variKeyOth
+		groupsKey = groupsKey, GSIkey = GSIkey, variKey = variKey, variKeyOth = variKeyOth,
+		#then AI status
+		AI = AI,
+		strataName = strataName
 	))
 }

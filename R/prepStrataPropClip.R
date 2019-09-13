@@ -1,6 +1,12 @@
 #' This function prepares the data to run multiple strata for estiamting the proportion clipped
+#' @param trapData dataframe with data for fish sampled from one strata - trap data for dam escapement
+#' @param adFinCol column name of column containing adipose fin status - TRUE being intact FALSE being clipped, NA missing
+#' @param strataCol column name of column indicating the strata the observation belongs to
+#' @param verbose TRUE to print some messages, FALSE to not
 #' 
-prepMultStrataPropClip <- function(trapData, strataCol, adFinCol, verbose = TRUE){
+#' @export
+
+prepStrataPropClip <- function(trapData, strataCol, adFinCol, verbose = TRUE){
 	
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
@@ -21,6 +27,9 @@ prepMultStrataPropClip <- function(trapData, strataCol, adFinCol, verbose = TRUE
 	if(verbose) cat("Using", nrow(trapData), "observations with adFin status and an assigned strata")
 	for(s in sort(unique(trapData[,strataCol]))){
 		strataData <- trapData[trapData[,strataCol] == s,] #select one strata
-		allStrata[[s]] <- c(sum(!trapData[,adFinCol], trapData[,adFinCol])) # clipped, unclipped
+		allStrata[[s]] <- list(c(sum(!strataData[,adFinCol]), sum(strataData[,adFinCol])), # clipped, unclipped
+									  strataName = s)
 	}
+	
+	return(allStrata)
 }
