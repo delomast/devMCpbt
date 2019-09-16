@@ -9,6 +9,7 @@
 #' @param writeSummary FALSE to repress summary files being written
 #' @param prefix the prefix to use when namign the summary files
 #' 
+#' @useDynLib devMCpbt
 #' @export
 #' 
 
