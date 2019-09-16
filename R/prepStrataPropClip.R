@@ -15,7 +15,7 @@ prepStrataPropClip <- function(trapData, strataCol, adFinCol, verbose = TRUE){
 			errMessage <- paste(nonValid, "observations that are not valid options for", adFinCol,
 				"\nthe adFinCol must either be a logical variable, with TRUE for ad-intact,", 
 				"or be a character variable with values of AD and AI for ad-clipped and ad-intact, respectively.", 
-				"\n Missing data should have values of NA.")
+				"\n Missing data should have values of NA.\n")
 			stop(errMessage)
 		}
 		trapData[,adFinCol] <- trapData[,adFinCol] == "AI"
@@ -24,7 +24,7 @@ prepStrataPropClip <- function(trapData, strataCol, adFinCol, verbose = TRUE){
 	
 	allStrata <- list() # list containing inputs for each strata
 	trapData <- trapData[!is.na(trapData[,adFinCol]) & !is.na(trapData[,strataCol]),]
-	if(verbose) cat("Using", nrow(trapData), "observations with adFin status and an assigned strata")
+	if(verbose) cat("\nUsing", nrow(trapData), "observations with adFin status and an assigned strata\n")
 	for(s in sort(unique(trapData[,strataCol]))){
 		strataData <- trapData[trapData[,strataCol] == s,] #select one strata
 		allStrata[[s]] <- list(c(sum(!strataData[,adFinCol]), sum(strataData[,adFinCol])), # clipped, unclipped

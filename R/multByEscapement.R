@@ -1,23 +1,86 @@
 #' Multiplies escapement estimates by composition estimates
 #' 
+#' @param input
+#' @param mainRes
+#' @param clipInput
+#' @param clipRes
+#' @param escapementByStrata
+#' @param verbose
+#' @param writeSummary
+#' @param prefix
+#' 
+#' @export
 #' 
 
 
-multByEscapement <- function(	input, clipInput, aiRes, clipRes, escapementByStrata, verbose = TRUE){
-	#### Need to:
-	# make clip and unclip optional
+multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, verbose = TRUE, writeSummary = TRUE, prefix = "", alpha = .1){
+
 	# have optional summary of posterior means, medians, and CI's written to file
-	
-	
-	##  note that clipInput and clipRes are optional
 	
 	## check inputs
 	numStrata <- length(input)
-	## strata names the same and in order
-	## escapement same length as others
+	if(numStrata != length(escapementByStrata)){
+		stop("input and escapementByStrata do not represent the same number of strata.")
+	}
+	if(numStrata != length(mainRes)){
+		stop("input and mainRes do not represent the same number of strata.")
+	}
+	if(is.list(clipRes) && (numStrata != length(clipRes))){
+		stop("input and clipRes do not represent the same number of strata.")
+	}
+	stratSamp <- c()
+	escapeSamp <- c()
+	for(i in 1:numStrata){
+		stratSamp <- c(stratSamp, nrow(mainRes[[i]]$piTot))
+		escapeSamp <- c(escapeSamp, length(escapementByStrata[[i]]))
+	}
+	stratSamp <- unique(stratSamp)
+	escapeSamp <- unique(escapeSamp)
+	if(length(stratSamp) > 1){
+		stop("not all strata in mainRes have the same number of iterations")
+	}
+	if(length(escapeSamp) > 1){
+		stop("not all strata in escapementByStrata have the same length")
+	}
+	
+	if(stratSamp != escapeSamp){
+		stop("The number of iterations for each strata in mainRes does not equal the length of each strata in escapementByStrata")
+	}
+	
+
+	if(is.list(clipRes)){
+		for(i in 1:numStrata){
+		if(length(clipRes[[i]]) != length(escapementByStrata[[i]])){
+			err <- paste("In strata number", i, "the number of samples in clipRes is not equal", 
+							 "to the number of samples in escapementByStrata")
+			stop(err)
+			}
+		}
+	}
+	
 	
 	## identify AI
 	AI <- input[[1]]$AI
+	
+	## create clipRes if clipRes not given
+	if(!is.list(clipRes)){
+		if (AI){
+			if(verbose) cat("\nNo input given for clipRes, assuming all fish are ad-intact\n")
+			#make input for all ad-intact
+			clipRes <- list()
+			for(i in 1:length(input)){
+				clipRes[[i]] <- rep(0, length(escapementByStrata[[i]]))
+			}
+		} else {
+			if(verbose) cat("\nNo input given for clipRes, assuming all fish are ad-clipped\n")
+			#make input for all ad-clipped
+			clipRes <- list()
+			for(i in 1:length(input)){
+				clipRes[[i]] <- rep(1, length(escapementByStrata[[i]]))
+			}
+		}
+	}
+	
 	if(verbose && AI) cat("\nDecomposing ad-intact fish")
 	if(verbose && !AI) cat("\nDecomposing ad-clipped fish")
 	
@@ -32,13 +95,13 @@ multByEscapement <- function(	input, clipInput, aiRes, clipRes, escapementByStra
 		#select clipped or unclipped total to use downstream
 		if (AI) {
 			total <- clipUnclip[,2]
-		} else{
+		} else {
 			total <- clipUnclip[,1] 
 		}
 		
 		#save current strata to make access easier
 		cStrataInput <- input[[i]]
-		cStrata <- aiRes[[i]]
+		cStrata <- mainRes[[i]]
 		
 		# breakdown by piTot
 		piTotNumbers <- cStrata$piTot * total
@@ -129,6 +192,7 @@ multByEscapement <- function(	input, clipInput, aiRes, clipRes, escapementByStra
 		totClipUnclip[,1] <- totClipUnclip[,1] + strataEstimates[[i]]$clipEstim[,1]
 		totClipUnclip[,2] <- totClipUnclip[,2] + strataEstimates[[i]]$clipEstim[,2]
 	}
+	colnames(totClipUnclip) <- c("Number_clipped", "Number_unclipped")
 	
 	## general strategy: 
 	## get all column names across all strata
@@ -225,14 +289,88 @@ multByEscapement <- function(	input, clipInput, aiRes, clipRes, escapementByStra
 		strataNames <- c(strataNames, strataEstimates[[i]]$strataName)
 	}
 	
+	#write summary and CIs - optional
+	if (writeSummary){
+		#perform this for H,HNC,W
+		H <- totClipUnclip[,1]
+		HNC <- rep(0, length(H))
+		W <- rep(0, length(H))
+		if(AI){
+			for(i in 1:numStrata){
+				nPBT <- input[[i]]$nPBT
+				if(nPBT == 1){
+					HNC <- HNC + strataEstimates[[i]]$piTotEstim[,1]
+				} else {
+					HNC <- HNC + rowSums(strataEstimates[[i]]$piTotEstim[,1:nPBT])
+				}
+				if((nPBT + 1) == ncol(strataEstimates[[i]]$piTotEstim)){
+					W <- W + strataEstimates[[i]]$piTotEstim[,(nPBT + 1)]
+				} else {
+					W <- W + rowSums(strataEstimates[[i]]$piTotEstim[,(nPBT+1):ncol(strataEstimates[[i]]$piTotEstim)])
+				}
+			}
+		}
+		output <- data.frame(Group = c("Clipped", "HatcheryNoClip", "Wild"),
+							Mean = NA,
+							Median = NA,
+							Lower = NA,
+							Upper = NA,
+							stringsAsFactors = FALSE)
+		#calculate means
+		output$Mean <- c(mean(H), mean(HNC), mean(W))
+		#calculate medians
+		output$Median <- c(median(H), median(HNC), median(W))
+		#calculate CI's
+		output[1,4:5] <- quantile(H, c((alpha/2), (1 - (alpha/2))))
+		output[2,4:5] <- quantile(HNC, c((alpha/2), (1 - (alpha/2))))
+		output[3,4:5] <- quantile(W, c((alpha/2), (1 - (alpha/2))))
+		colnames(output)[4:5] <- c(paste0("Lower_(", alpha/2, ")"), paste0("Upper_(", (1 - (alpha/2)), ")"))
+		#write output
+		write.table(output, paste0(prefix, "RearTypeSummary.txt"), quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "\t")
+
+		#piTot (stock comp)
+		output <- data.frame(Group = colnames(totPiTotEstim),
+					Mean = apply(totPiTotEstim,2,mean),
+					Median = apply(totPiTotEstim,2,median),
+					Lower = apply(totPiTotEstim,2,quantile, (alpha/2)),
+					Upper = apply(totPiTotEstim,2,quantile, (1 - (alpha/2))),
+					stringsAsFactors = FALSE)
+		colnames(output)[4:5] <- c(paste0("Lower_(", alpha/2, ")"), paste0("Upper_(", (1 - (alpha/2)), ")"))
+		write.table(output, paste0(prefix, "StockCompSummary.txt"), quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "\t")
+		#piV
+		for (v in names(totpiVnumbers)){
+			tempData <- totpiVnumbers[[v]]
+			output <- data.frame(Group = colnames(tempData),
+						Mean = apply(tempData,2,mean),
+						Median = apply(tempData,2,median),
+						Lower = apply(tempData,2,quantile, (alpha/2)),
+						Upper = apply(tempData,2,quantile, (1 - (alpha/2))),
+						stringsAsFactors = FALSE)
+			colnames(output)[4:5] <- c(paste0("Lower_(", alpha/2, ")"), paste0("Upper_(", (1 - (alpha/2)), ")"))
+			write.table(output, paste0(prefix, v, "CompSummary.txt"), quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "\t")
+		}
+		#piVOth
+		for (v in names(totpiVnumbersOth)){
+			tempData <- totpiVnumbersOth[[v]]
+			output <- data.frame(Group = colnames(tempData),
+						Mean = apply(tempData,2,mean),
+						Median = apply(tempData,2,median),
+						Lower = apply(tempData,2,quantile, (alpha/2)),
+						Upper = apply(tempData,2,quantile, (1 - (alpha/2))),
+						stringsAsFactors = FALSE)
+			colnames(output)[4:5] <- c(paste0("Lower_(", alpha/2, ")"), paste0("Upper_(", (1 - (alpha/2)), ")"))
+			write.table(output, paste0(prefix, v, "CompSummary.txt"), quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "\t")
+		}
+		
+	} # end: if (writeSummary)
+	
 	
 	# to return, per strata estimates, total estimates, and strata names
-	
 	return(list(totClipUnclip = totClipUnclip,
 					totPiTotEstim = totPiTotEstim,
 					totGSIestim = totGSIestim,
-					totpiVnumbers = totpiVnumbers,
-					totpiVnumbersOth = totpiVnumbersOth,
+					totpiVestim = totpiVnumbers,
+					totpiVestimOth = totpiVnumbersOth,
 					strataNames = strataNames,
 					strataEstimates = strataEstimates
 					))
