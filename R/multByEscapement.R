@@ -1,32 +1,32 @@
 #' Multiplies escapement estimates by composition estimates
 #' 
-#' @param input
-#' @param mainRes
-#' @param clipInput
-#' @param clipRes
-#' @param escapementByStrata
-#' @param verbose
-#' @param writeSummary
-#' @param prefix
+#' @param prepData the same \code{prepData} used as input for \code{estimStrataMCpbt}
+#' @param mainRes the output of \code{estimStrataMCpbt}
+#' @param clipRes the output of \code{estimStrataPropClip}
+#' @param escapementByStrata a list of population size estimates for each strata, in order, 
+#'   with each strata being an entry in the list
+#' @param verbose FALSE to repress output written to the screen
+#' @param writeSummary FALSE to repress summary files being written
+#' @param prefix the prefix to use when namign the summary files
 #' 
 #' @export
 #' 
 
 
-multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, verbose = TRUE, writeSummary = TRUE, prefix = "", alpha = .1){
+multByEscapement <- function(prepData, mainRes, clipRes = NA, escapementByStrata, verbose = TRUE, writeSummary = TRUE, prefix = "", alpha = .1){
 
 	# have optional summary of posterior means, medians, and CI's written to file
 	
 	## check inputs
-	numStrata <- length(input)
+	numStrata <- length(prepData)
 	if(numStrata != length(escapementByStrata)){
-		stop("input and escapementByStrata do not represent the same number of strata.")
+		stop("prepData and escapementByStrata do not represent the same number of strata.")
 	}
 	if(numStrata != length(mainRes)){
-		stop("input and mainRes do not represent the same number of strata.")
+		stop("prepData and mainRes do not represent the same number of strata.")
 	}
 	if(is.list(clipRes) && (numStrata != length(clipRes))){
-		stop("input and clipRes do not represent the same number of strata.")
+		stop("prepData and clipRes do not represent the same number of strata.")
 	}
 	stratSamp <- c()
 	escapeSamp <- c()
@@ -60,7 +60,7 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 	
 	
 	## identify AI
-	AI <- input[[1]]$AI
+	AI <- prepData[[1]]$AI
 	
 	## create clipRes if clipRes not given
 	if(!is.list(clipRes)){
@@ -68,14 +68,14 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 			if(verbose) cat("\nNo input given for clipRes, assuming all fish are ad-intact\n")
 			#make input for all ad-intact
 			clipRes <- list()
-			for(i in 1:length(input)){
+			for(i in 1:length(prepData)){
 				clipRes[[i]] <- rep(0, length(escapementByStrata[[i]]))
 			}
 		} else {
 			if(verbose) cat("\nNo input given for clipRes, assuming all fish are ad-clipped\n")
 			#make input for all ad-clipped
 			clipRes <- list()
-			for(i in 1:length(input)){
+			for(i in 1:length(prepData)){
 				clipRes[[i]] <- rep(1, length(escapementByStrata[[i]]))
 			}
 		}
@@ -86,8 +86,8 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 	
 	strataEstimates <- list()
 	#for each strata
-	for(i in 1:length(input)){
-		strataName <- input[[i]]$strataName
+	for(i in 1:length(prepData)){
+		strataName <- prepData[[i]]$strataName
 		#clipped and unclipped breakdown
 		clipUnclip <- escapementByStrata[[i]]*clipRes[[i]] ## calculate number clipped
 		clipUnclip <- cbind(clipUnclip, escapementByStrata[[i]] - clipUnclip) ##remainder are unclipped
@@ -100,7 +100,7 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 		}
 		
 		#save current strata to make access easier
-		cStrataInput <- input[[i]]
+		cStrataInput <- prepData[[i]]
 		cStrata <- mainRes[[i]]
 		
 		# breakdown by piTot
@@ -242,7 +242,7 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 	
 		# variableEstim = piVnumbers,
 	totpiVnumbers <- list()
-	for(v in names(input[[1]]$values)){
+	for(v in names(prepData[[1]]$values)){
 		columns <- c()
 		for(i in 1:numStrata){
 			columns <- c(columns, colnames(strataEstimates[[i]]$variableEstim[[v]]))
@@ -264,7 +264,7 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 		
 		# variableEstimOth = piVnumbersOth,
 	totpiVnumbersOth <- list()
-	for(v in names(input[[1]]$valuesOth)){
+	for(v in names(prepData[[1]]$valuesOth)){
 		columns <- c()
 		for(i in 1:numStrata){
 			columns <- c(columns, colnames(strataEstimates[[i]]$variableEstimOth[[v]]))
@@ -297,7 +297,7 @@ multByEscapement <- function(input, mainRes, clipRes = NA, escapementByStrata, v
 		W <- rep(0, length(H))
 		if(AI){
 			for(i in 1:numStrata){
-				nPBT <- input[[i]]$nPBT
+				nPBT <- prepData[[i]]$nPBT
 				if(nPBT == 1){
 					HNC <- HNC + strataEstimates[[i]]$piTotEstim[,1]
 				} else {

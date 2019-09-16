@@ -3,9 +3,15 @@
 #' 
 #' A wrapper for \code{MCpbt}
 #' 
+#' @param prepData The output of \code{prepStrat} with priors and initial values modified as you see fit
+#' @param iter The total number of iterations to run each strata, includign burn-in iterations
+#' @param burnIn The number of burn-in iterations
+#' @param thin Thinning parameter for the MCMC chain
+#' @param seed a positive integer to seed the random number generator. If not specified, chosen based on the current time. 
 #' 
+#' @export
 
-estimStrataMCpbt <- function(prepData, iter, burnIn, thin, seed = NA){
+estimStrataMCpbt <- function(prepData, iter, burnIn, thin = 1, seed = NA){
 	
 	# get seed
 	if(is.na(seed)){

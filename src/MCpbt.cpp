@@ -26,6 +26,7 @@ using namespace std;
 //v_ut is a matrix with a row for each untagged individual, a column for each variable, and the data being the values for each variable.
 //  -9 is missing
 //t is tag rates in same order as groups
+//' @export
 // [[Rcpp::export]]
 Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall parameters for the chain
                           Rcpp::NumericVector piTotPrior, Rcpp::NumericVector ohnc, Rcpp::NumericVector piTotInitial, //piTotal parameters

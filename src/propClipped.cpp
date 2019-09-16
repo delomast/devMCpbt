@@ -18,7 +18,7 @@ using namespace std;
  	having it set up to estimate through MCMC may make implementation of these
  	possibilities easier.
 */
-//
+//' @export
 // [[Rcpp::export]]
 Rcpp::NumericVector propClipped(int Nclip, int Nunclip, int NumResults, unsigned int seed,
                              Rcpp::NumericVector clipPrior = Rcpp::NumericVector::create(1,1)) {
