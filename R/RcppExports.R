@@ -3,11 +3,11 @@
 
 #' @export
 MCpbt <- function(iter, burnIn, thin, seed, piTotPrior, ohnc, piTotInitial, oUTInitial, groups, nPBT, GSI_values, gsiUT, pi_gsiInitial, prior_pi_gsi, ohnc_gsi, values, pi_VInitial, pi_Vohnc, pi_Vprior, v_ut, initZ, t, valuesOth, pi_VInitialOth, pi_VohncOth, pi_VpriorOth, v_utOth) {
-    .Call('_devMCpbt_MCpbt', PACKAGE = 'devMCpbt', iter, burnIn, thin, seed, piTotPrior, ohnc, piTotInitial, oUTInitial, groups, nPBT, GSI_values, gsiUT, pi_gsiInitial, prior_pi_gsi, ohnc_gsi, values, pi_VInitial, pi_Vohnc, pi_Vprior, v_ut, initZ, t, valuesOth, pi_VInitialOth, pi_VohncOth, pi_VpriorOth, v_utOth)
+    .Call(`_devMCpbt_MCpbt`, iter, burnIn, thin, seed, piTotPrior, ohnc, piTotInitial, oUTInitial, groups, nPBT, GSI_values, gsiUT, pi_gsiInitial, prior_pi_gsi, ohnc_gsi, values, pi_VInitial, pi_Vohnc, pi_Vprior, v_ut, initZ, t, valuesOth, pi_VInitialOth, pi_VohncOth, pi_VpriorOth, v_utOth)
 }
 
 #' @export
 propClipped <- function(Nclip, Nunclip, NumResults, seed, clipPrior = as.numeric( c(1,1))) {
-    .Call('_devMCpbt_propClipped', PACKAGE = 'devMCpbt', Nclip, Nunclip, NumResults, seed, clipPrior)
+    .Call(`_devMCpbt_propClipped`, Nclip, Nunclip, NumResults, seed, clipPrior)
 }
 
