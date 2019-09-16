@@ -475,7 +475,6 @@ input[[2]]
 
 names(input[[1]])
 
-head(testData2[[1]])
 
 aiRes <- estimStrataMCpbt(input, 1000, 10, 1)
 clipRes <- estimStrataPropClip(clipInput, nrow(aiRes[[1]]$piTot), seed = NA, priors = NA, verbose = TRUE)
@@ -492,7 +491,7 @@ escapementByStrata <- list(rep(3000, nrow(aiRes[[1]]$piTot)),
 
 
 escapeResults <- multByEscapement(input, aiRes, clipRes, escapementByStrata, verbose = TRUE)
-escapeResults <- multByEscapement(input, aiRes, NA, escapementByStrata, verbose = TRUE)
+# escapeResults <- multByEscapement(input, aiRes, NA, escapementByStrata, verbose = TRUE)
 
 str(escapeResults)
 

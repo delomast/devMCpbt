@@ -1,0 +1,58 @@
+---
+title: "Composition_Estimates_all_ad_intact"
+author: "Thomas Delomas"
+date: "9-16-2019"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Composition_Estimates_all_ad_intact}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(devMCpbt)
+```
+
+## Introduction
+This document will walk through how to assess composition of groups of all ad-intact fish. This may be encountered
+in multiple scenarios, such as:
+
+* The entire population you are sampling is ad-intact
+* You estimate population sizes separately for ad-intact and ad-clipped fish
+* You do not wish to differentiate between ad-intact and ad-clipped (so you can analyze them as if they are all ad-intact)
+* The species does not have an adipose fin (so you can analyze them as if they are all ad-intact)
+
+This document will work through a scenario were the samples are grouped into three strata that were sampled at different rates.
+
+## First, get some data
+First, we will generate some data using the built in data-simulation function.
+
+```{r}
+
+# define the unknown "true" proportions at which fish in each
+# PBT group assign to the different GSI groups
+pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byrow = TRUE)
+
+# now generate three strata from identical parameters
+multStratData <- data.frame()
+for(i in 1:3){
+	tempData <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
+										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
+				    true_clipped = 0, true_noclip_H = .4, true_wild = .6, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat)
+	tempData <- tempData[[1]]
+	tempData$Strata <- i
+	multStratData <- rbind(multStratData, tempData)
+}
+tags <- tempData[[2]] # get the tag rates for the PBT groups
+
+head(multStratData)
+```
+
+
