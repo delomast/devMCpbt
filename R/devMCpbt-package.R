@@ -6,6 +6,6 @@
 #' @docType package
 #' @importFrom Rcpp evalCpp
 #' 
-#' @useDynLib devMCpbt
+#' @useDynLib devMCpbt, .registration=TRUE
 #' 
 NULL
