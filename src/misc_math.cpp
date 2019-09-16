@@ -67,7 +67,7 @@ vector<double> randDirich(vector<double> alphas, mt19937 * rNum) {
 //probs are relative probabilities (normalized within the function)
 //not exported
 int sampleC(vector<int> items, vector<double> probs, mt19937 * rNum) {
-	int result;
+	
 	//input checking and remove items with 0 probability
 	if(items.size() != probs.size()) Rcpp::stop("invalid input to sampleC, dimensions differ");
 	
@@ -95,6 +95,7 @@ int sampleC(vector<int> items, vector<double> probs, mt19937 * rNum) {
 	uniform_real_distribution <double> rUnif(0.0,cumulSum);
 	double rN = rUnif(*rNum);
 	//assign result
+	int result = 0;
 	for(int i=0, max=newProbs.size(); i<max; i++){
 		if(rN < newProbs[i]){
 			result = newItems[i];
