@@ -506,3 +506,7 @@ str(escapeResults$strataEstimates)
 str(escapeResults$strataEstimates[[1]]$piTotEstim)
 head(escapeResults$strataEstimates[[1]]$piTotEstim)
 
+
+generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
+										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
+				    true_clipped = .4, true_noclip_H = .2, true_wild = .4, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat)

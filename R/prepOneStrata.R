@@ -201,11 +201,11 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 									GSIid = 1:nGSI,
 									stringsAsFactors = FALSE)
 	GSIgroups <- 1:nGSI
-	# gsiUT <- trapData[untagBool, GSIcol]
 	old <- gsiUT
 	for(i in 1:nGSI){
 		gsiUT[old == GSIkey[i,1]] <- GSIkey[i,2]
 	}
+	gsiUT <- as.numeric(gsiUT)
 	rm(old)
 	
 	

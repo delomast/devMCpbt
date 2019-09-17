@@ -21,8 +21,8 @@ library(devMCpbt)
 ```
 
 ## Introduction
-This document will walk through how to assess composition of groups of all ad-intact fish. This may be encountered
-in multiple scenarios, such as:
+This document will walk through how to assess composition of groups of all ad-intact fish into PBT and GSI groups. 
+This may be encountered in multiple scenarios, such as:
 
 * The entire population you are sampling is ad-intact
 * You estimate population sizes separately for ad-intact and ad-clipped fish
@@ -46,13 +46,125 @@ for(i in 1:3){
 	tempData <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
 										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
 				    true_clipped = 0, true_noclip_H = .4, true_wild = .6, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat)
-	tempData <- tempData[[1]]
-	tempData$Strata <- i
-	multStratData <- rbind(multStratData, tempData)
+	trapData <- tempData[[1]]
+	trapData$Strata <- i
+	multStratData <- rbind(multStratData, trapData)
 }
 tags <- tempData[[2]] # get the tag rates for the PBT groups
+multStratData$GSI <- paste0("GSIgroup_", multStratData$GSI)
 
 head(multStratData)
 ```
 
+Now we have a dataframe with a column describing whether a fish is ad-clipped or ad-intact 
+(values of AD and AI, respectively), a column denoting if the fish has a physical tag that 
+identifies it as hatchery origin (ignore this column for this vignette), a column with the 
+PBT assignment (Unassigned means it was attempted to be assigned, but did not have a match),
+a column with GSI assignments, and a column giving the strata that sample belongs to.
 
+```{r}
+head(tags)
+```
+
+We also have a dataframe with the names of the PBT groups (matching the labels in the 
+GenParentHatchery column) and the tag rates (successful genotyping rates) for those
+groups. 
+
+Note for users not familiar with R: To analyze an actual dataset, you can set up two files in a spreadsheet program, one
+that looks like multStratData and one that looks like tags, and save them as csv
+files. You can then load them into R using the read.csv function.
+
+## Second, prep the data for the estimation function
+Now we need to prepare the data in the way the estimation function can use it. We will
+do this using a function in the package that takes the two dataframes we created above
+as input.
+
+```{r}
+# note that we are using AI=TRUE because we are looking at the composition
+#  of ad-intact fish
+mainInput <- prepStrata(multStratData, tags, GSIcol = "GSI", PBTcol = "GenParentHatchery", 
+								strataCol = "Strata", adFinCol = "AdClip", AI = TRUE)
+```
+
+This has created an input list that has one item for each strata. We'll go through the 
+componenets of one strata to briefly define what they all are. Each item (strata) has
+the same components, just with different data. This is an important point, because the
+priors can be set to be different for each strata, if desired (and if you want all the
+priors changed, you must do it for all strata).
+
+```{r}
+str(mainInput[[1]])
+```
+
+[*Will put in here later an explanation of all the parts of the input*
+*or potentially will have a vignette on more in-depth usage with an explanation of all*
+*the parts and can just reference that.*]
+
+
+##Third, we generate the estimates
+
+We now generate the estiamtes of composition for each strata. These are estimates of the
+proportion of fish in each strata that belong to different groups, in our case PBT and
+GSI groups.
+
+
+
+```{r}
+# specifying a seed to make the anlaysis reproducible
+# running 11000 iterations wiht 1000 burn-in and no thinning
+# this will yield 10000 recorded MCMC samples
+propEstimates <- estimStrataMCpbt(mainInput, iter = 11000, burnIn = 1000, thin = 1, seed = 7)
+```
+
+We can then take a look at the results:
+
+```{r}
+str(propEstimates)
+```
+
+[*can either explain results structure here, or in a separate vignette.*]
+
+
+## Fourth, we multiply by the estimated population size
+
+In some situations, you will have a population size estimate with a particular distribution
+you can sample from, while in other cases you will just have a known (or assumed) population
+size. In this case, we will assume a population size of 3000 in strata 1 and 2, but a size of
+1500 in strata 3. We turn this into an input the function can use as such:
+
+```{r}
+popSizeEstimates <- list() # a list with one entry per strata
+popSizeEstimates <- list(rep(3000, 10000),
+					  rep(3000, 10000),
+					  rep(1500, 10000))
+# note that if our population size was an estimate from a given distribution,
+#   we would take 10000 samples from this distribution for each strata, and
+#   organize them as a list, just as we are doing here
+```
+
+Now that we have the population size input, we can use a function in the package
+to multiply the population sizes by the estimated proportions. If we use the 
+writeSummary = TRUE option, a group of summary files with CI's will be
+written to the working directory.
+
+```{r}
+countEstimates <- multByEscapement(mainInput, mainRes = propEstimates, popSizes = popSizeEstimates,
+											  writeSummary = TRUE)
+```
+
+
+
+Now we have two files in the working directory, one summarizing the estimated number of 
+hatchery and wild fish, and the other summarizing the estimated numbers of each PBT and
+wild-GSI group. The CI's in these files are symmetric CI's calculated using R's
+quantile function.
+
+The variable countEstimates has the raw estimates calculated by multiplying the 
+samples from the posterior as appropriate, and can be used to calculate other quantities
+of interest or to calculate CIs using other methods. 
+
+```{r}
+str(countEstimates)
+```
+
+*either add explanation of output or reference another vignette that does*

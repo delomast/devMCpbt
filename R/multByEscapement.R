@@ -3,7 +3,7 @@
 #' @param prepData the same \code{prepData} used as input for \code{estimStrataMCpbt}
 #' @param mainRes the output of \code{estimStrataMCpbt}
 #' @param clipRes the output of \code{estimStrataPropClip}
-#' @param escapementByStrata a list of population size estimates for each strata, in order, 
+#' @param popSizes a list of population size estimates for each strata, in order, 
 #'   with each strata being an entry in the list
 #' @param verbose FALSE to repress output written to the screen
 #' @param writeSummary FALSE to repress summary files being written
@@ -13,14 +13,14 @@
 #' 
 
 
-multByEscapement <- function(prepData, mainRes, clipRes = NA, escapementByStrata, verbose = TRUE, writeSummary = TRUE, prefix = "", alpha = .1){
+multByEscapement <- function(prepData, mainRes, clipRes = NA, popSizes, verbose = TRUE, writeSummary = TRUE, prefix = "", alpha = .1){
 
 	# have optional summary of posterior means, medians, and CI's written to file
 	
 	## check inputs
 	numStrata <- length(prepData)
-	if(numStrata != length(escapementByStrata)){
-		stop("prepData and escapementByStrata do not represent the same number of strata.")
+	if(numStrata != length(popSizes)){
+		stop("prepData and popSizes do not represent the same number of strata.")
 	}
 	if(numStrata != length(mainRes)){
 		stop("prepData and mainRes do not represent the same number of strata.")
@@ -32,7 +32,7 @@ multByEscapement <- function(prepData, mainRes, clipRes = NA, escapementByStrata
 	escapeSamp <- c()
 	for(i in 1:numStrata){
 		stratSamp <- c(stratSamp, nrow(mainRes[[i]]$piTot))
-		escapeSamp <- c(escapeSamp, length(escapementByStrata[[i]]))
+		escapeSamp <- c(escapeSamp, length(popSizes[[i]]))
 	}
 	stratSamp <- unique(stratSamp)
 	escapeSamp <- unique(escapeSamp)
@@ -40,19 +40,19 @@ multByEscapement <- function(prepData, mainRes, clipRes = NA, escapementByStrata
 		stop("not all strata in mainRes have the same number of iterations")
 	}
 	if(length(escapeSamp) > 1){
-		stop("not all strata in escapementByStrata have the same length")
+		stop("not all strata in popSizes have the same length")
 	}
 	
 	if(stratSamp != escapeSamp){
-		stop("The number of iterations for each strata in mainRes does not equal the length of each strata in escapementByStrata")
+		stop("The number of iterations for each strata in mainRes does not equal the length of each strata in popSizes")
 	}
 	
 
 	if(is.list(clipRes)){
 		for(i in 1:numStrata){
-		if(length(clipRes[[i]]) != length(escapementByStrata[[i]])){
+		if(length(clipRes[[i]]) != length(popSizes[[i]])){
 			err <- paste("In strata number", i, "the number of samples in clipRes is not equal", 
-							 "to the number of samples in escapementByStrata")
+							 "to the number of samples in popSizes")
 			stop(err)
 			}
 		}
@@ -69,14 +69,14 @@ multByEscapement <- function(prepData, mainRes, clipRes = NA, escapementByStrata
 			#make input for all ad-intact
 			clipRes <- list()
 			for(i in 1:length(prepData)){
-				clipRes[[i]] <- rep(0, length(escapementByStrata[[i]]))
+				clipRes[[i]] <- rep(0, length(popSizes[[i]]))
 			}
 		} else {
 			if(verbose) cat("\nNo input given for clipRes, assuming all fish are ad-clipped\n")
 			#make input for all ad-clipped
 			clipRes <- list()
 			for(i in 1:length(prepData)){
-				clipRes[[i]] <- rep(1, length(escapementByStrata[[i]]))
+				clipRes[[i]] <- rep(1, length(popSizes[[i]]))
 			}
 		}
 	}
@@ -89,8 +89,8 @@ multByEscapement <- function(prepData, mainRes, clipRes = NA, escapementByStrata
 	for(i in 1:length(prepData)){
 		strataName <- prepData[[i]]$strataName
 		#clipped and unclipped breakdown
-		clipUnclip <- escapementByStrata[[i]]*clipRes[[i]] ## calculate number clipped
-		clipUnclip <- cbind(clipUnclip, escapementByStrata[[i]] - clipUnclip) ##remainder are unclipped
+		clipUnclip <- popSizes[[i]]*clipRes[[i]] ## calculate number clipped
+		clipUnclip <- cbind(clipUnclip, popSizes[[i]] - clipUnclip) ##remainder are unclipped
 		colnames(clipUnclip) <- c("Number_clipped", "Number_unclipped")
 		#select clipped or unclipped total to use downstream
 		if (AI) {
