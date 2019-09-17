@@ -97,6 +97,8 @@ prepStrata <- function(trapData, tags, GSIcol, PBTcol, strataCol, variableCols =
 	# 	names(valuesOth) <- variableColsOth
 	# }
 	
+	# change strata variable to character - if numeric and not consecutive from 1, causes problems with assigning to the list
+	trapData[,strataCol] <- as.character(trapData[,strataCol])
 
 	# now prep each strata
 	allStrata <- list() # list containing inputs for each strata
