@@ -510,3 +510,52 @@ head(escapeResults$strataEstimates[[1]]$piTotEstim)
 generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
 										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
 				    true_clipped = .4, true_noclip_H = .2, true_wild = .4, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat)
+
+
+######################################################################################################
+######################################################################################################
+######################################################################################################
+
+setwd("S:\\Eagle Fish Genetics Lab\\Tom\\Scobi_Deux\\OtsBON_SCOBI2018")
+
+
+##Now load the three data sources into R
+
+tags <- read.csv("PBT tag rates.csv", stringsAsFactors = FALSE)
+tags <- tags[tags[,1] != "Unassigned",] #remove Unassigned from tag rate dataframe
+trap <- read.csv("2018RearHNCscobi_TD.csv", stringsAsFactors = FALSE)
+window <- read.csv("HNC_clip_window.csv", stringsAsFactors = FALSE)
+
+trap$WeekNumber <- as.character(trap$WeekNumber)
+
+#just showing what has been loaded into R
+head(tags)
+head(trap)
+head(window)
+
+# note the AI=TRUE option b/c these are ad-intact fish we are analyzing
+mainInput <- prepStrata(trapData = trap, tags = tags, GSIcol = "GenStock", PBTcol = "GenParentHatchery", strataCol = "WeekNumber", adFinCol = "AdClip", AI = TRUE)
+
+str(tags)
+
+propEstimates <- estimStrataMCpbt(mainInput, iter = 11000, burnIn = 1000, thin = 1, seed = 7)
+
+
+
+
+
+
+## one variable
+testData <- generatePBTGSIdata(sampRate = .18, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
+										 obsTagRates = c(.8, .85,.9), physTagRates = 0,
+				    true_clipped = 0, true_noclip_H = 0, true_wild = 1, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat[1])
+
+testData[[1]]$Strata <- 1
+mainInput <- prepStrata(trapData = testData[[1]], tags = testData[[2]], GSIcol = "GSI", PBTcol = "GenParentHatchery", strataCol = "Strata", 
+								adFinCol = "AdClip", AI = TRUE)
+
+
+propEstimates <- estimStrataMCpbt(mainInput, iter = 1000, burnIn = 100, thin = 1, seed = 7)
+
+countEstimates <- multByEscapement(mainInput, mainRes = propEstimates, popSizes = popSizeEstimates,
+writeSummary = TRUE)

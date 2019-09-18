@@ -300,7 +300,7 @@ multByEscapement <- function(prepData, mainRes, clipRes = NA, popSizes, verbose 
 				nPBT <- prepData[[i]]$nPBT
 				if(nPBT == 1){
 					HNC <- HNC + strataEstimates[[i]]$piTotEstim[,1]
-				} else {
+				} else if (nPBT > 1) {
 					HNC <- HNC + rowSums(strataEstimates[[i]]$piTotEstim[,1:nPBT])
 				}
 				if((nPBT + 1) == ncol(strataEstimates[[i]]$piTotEstim)){

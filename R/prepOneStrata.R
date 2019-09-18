@@ -61,9 +61,11 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 	nPBT <- nrow(tags) #number of PBT groups
 
 	groups <- c(tags[,1], GSIgroups) #this is list of all the PBT groups and the wild
-	ohnc <- rep(0, nrow(tags)) # count how many assigned to each pbt group
-	for(i in 1:nrow(tags)){
-		ohnc[i] <- sum(trapData[,PBTcol] == tags[i,1])
+	ohnc <- rep(0, nPBT) # count how many assigned to each pbt group
+	if(nPBT > 0){
+		for(i in 1:nPBT){
+			ohnc[i] <- sum(trapData[,PBTcol] == tags[i,1])
+		}
 	}
 	ohnc <- c(ohnc, rep(0, nGSI)) # add wild with 0
 	t <- as.numeric(c(tags[,2], rep(0, nGSI))) # tag rates, with wild as 0
@@ -74,12 +76,13 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 	
 	#GSI observations for PBT-tagged fish
 	ohnc_GSI <- matrix(0, nrow = nrow(tags), ncol = nGSI)
-	for(i in 1:nrow(tags)){
-		for(j in 1:length(GSIgroups)){
-			ohnc_GSI[i,j] <- sum(trapData[,PBTcol] == tags[i,1] & trapData[,GSIcol] == GSIgroups[j])
+	if(nPBT > 0){
+		for(i in 1:nPBT){
+			for(j in 1:length(GSIgroups)){
+				ohnc_GSI[i,j] <- sum(trapData[,PBTcol] == tags[i,1] & trapData[,GSIcol] == GSIgroups[j])
+			}
 		}
 	}
-	
 	### set up categorical variables
 	names_variables <- variableCols
 	v_ut <- list() # this is list of the observations for categorical variables for untagged fish
@@ -178,7 +181,7 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 		pi_gsi[i,] <- 1/nGSI #all equal
 	}
 	currentCol <- 1
-	for(i in (nrow(tags)+1):length(groups)){ #setting GSI groups to be exactly as observed
+	for(i in (nPBT+1):length(groups)){ #setting GSI groups to be exactly as observed
 		pi_gsi[i,currentCol] <- 1 #others were initialized at 0, so only set this one
 		currentCol <- currentCol + 1
 	}
