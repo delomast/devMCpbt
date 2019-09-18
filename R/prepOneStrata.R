@@ -143,20 +143,20 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 	
 	### set up priors - these are default, user can modify them as they see fit before running the model
 	# these are alphas for Dirichlet priors
-	prior_piTot <- rep(1, length(groups))
+	prior_piTot <- rep(symPrior, length(groups))
 	#for categorical variables
 	prior_piV <- list()
 	for(v in names_variables){
-		prior_piV[[v]] <- matrix(1, nrow = length(groups), ncol = length(values[[v]])) # here just using a uniform for all
+		prior_piV[[v]] <- matrix(symPrior, nrow = length(groups), ncol = length(values[[v]])) # here just using a uniform for all
 	}
 	#for "other" categorical variables
 	prior_piVOth <- list()
 	for(v in names_variablesOth){
-		prior_piVOth[[v]] <- matrix(1, nrow = length(groups), ncol = length(valuesOth[[v]])) # here just using a uniform for all
+		prior_piVOth[[v]] <- matrix(symPrior, nrow = length(groups), ncol = length(valuesOth[[v]])) # here just using a uniform for all
 	}
 	
 	#prior for GSI composition of PBT groups
-	prior_piGSI <- matrix(1, nrow = nrow(tags), ncol = nGSI)
+	prior_piGSI <- matrix(symPrior, nrow = nrow(tags), ncol = nGSI)
 	
 	
 	### initial values - these are default, user can modify them as they see fit before running the model
