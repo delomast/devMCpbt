@@ -18,12 +18,14 @@
 #'   is helpful to make sure the same variable values are estiamted in each strata even if one value is not observed in all strata. If
 #'   a value other than a list is given (for example, NA), it uses the values present in the dataset.
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
+#' @param symPrior All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
+#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired.
 #' 
 #' @export
 
 prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 verbose = TRUE, GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA, strataName = NA){
+									 variableValues = NA, variableValuesOth = NA, strataName = NA, symPrior = .00001){
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
 		nonValid <- sum(!is.na(trapData[,adFinCol]) & !(trapData[,adFinCol] %in% c("AD", "AI")))

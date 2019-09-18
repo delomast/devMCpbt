@@ -24,12 +24,14 @@
 #'   a value other than a list is given (for example, NA), it uses the values present in the dataset within each strata (ie unobserved 
 #'   groups are assumed to be 0).
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
+#' @param symPrior All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
+#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired.
 #' 
 #' @export
 
 prepStrata <- function(trapData, tags, GSIcol, PBTcol, strataCol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA, verbose = TRUE){
+									 variableValues = NA, variableValuesOth = NA, symPrior = .00001, verbose = TRUE){
 	
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
@@ -107,7 +109,7 @@ prepStrata <- function(trapData, tags, GSIcol, PBTcol, strataCol, variableCols =
 		allStrata[[s]] <- prepOneStrata(trapData = strataData, tags = tags, GSIcol = GSIcol, PBTcol = PBTcol, 
 							variableCols = variableCols, variableColsOth = variableColsOth, adFinCol = adFinCol, AI = AI, 
 							 verbose = FALSE, GSIgroups = GSIgroups,
-							 variableValues = variableValues, variableValuesOth = variableValuesOth, strataName = s)
+							 variableValues = variableValues, variableValuesOth = variableValuesOth, strataName = s, symPrior = symPrior)
 	}
 	
 	return(allStrata)

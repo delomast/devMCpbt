@@ -543,7 +543,8 @@ propEstimates <- estimStrataMCpbt(mainInput, iter = 11000, burnIn = 1000, thin =
 
 
 
-
+###########################################
+# testing strata with no hatchery fish
 
 ## one variable
 testData <- generatePBTGSIdata(sampRate = .18, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), 
@@ -557,5 +558,5 @@ mainInput <- prepStrata(trapData = testData[[1]], tags = testData[[2]], GSIcol =
 
 propEstimates <- estimStrataMCpbt(mainInput, iter = 1000, burnIn = 100, thin = 1, seed = 7)
 
-countEstimates <- multByEscapement(mainInput, mainRes = propEstimates, popSizes = popSizeEstimates,
+countEstimates <- multByEscapement(mainInput, mainRes = propEstimates, popSizes = list(rep(3000, 900)),
 writeSummary = TRUE)
