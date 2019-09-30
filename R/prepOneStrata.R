@@ -25,7 +25,7 @@
 
 prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 verbose = TRUE, GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA, strataName = NA, symPrior = .00001){
+									 variableValues = NA, variableValuesOth = NA, strataName = NA, symPrior = .01){
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
 		nonValid <- sum(!is.na(trapData[,adFinCol]) & !(trapData[,adFinCol] %in% c("AD", "AI")))

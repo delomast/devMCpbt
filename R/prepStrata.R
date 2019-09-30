@@ -31,7 +31,7 @@
 
 prepStrata <- function(trapData, tags, GSIcol, PBTcol, strataCol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA, symPrior = .00001, verbose = TRUE){
+									 variableValues = NA, variableValuesOth = NA, symPrior = .01, verbose = TRUE){
 	
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
