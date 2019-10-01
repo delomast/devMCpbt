@@ -7,7 +7,7 @@
 prepOneStrata(trapData, tags, GSIcol, PBTcol, variableCols = c(),
   variableColsOth = c(), adFinCol, AI = TRUE, verbose = TRUE,
   GSIgroups = NA, variableValues = NA, variableValuesOth = NA,
-  strataName = NA)
+  strataName = NA, symPrior = 0.5)
 }
 \arguments{
 \item{trapData}{dataframe with data for fish sampled from one strata - trap data for dam escapement}
@@ -39,6 +39,11 @@ is helpful to make sure the same variable values are estiamted in each strata ev
 a value other than a list is given (for example, NA), it uses the values present in the dataset.}
 
 \item{variableValuesOth}{Same as variableValues, but for variableColsOth}
+
+\item{symPrior}{All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
+the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
+adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
+PBT group, using the default prior can be more informative than you may intend.}
 }
 \description{
 This function takes data in a standard table format and prepares it for one strata for MCpbt

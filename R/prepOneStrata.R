@@ -19,13 +19,15 @@
 #'   a value other than a list is given (for example, NA), it uses the values present in the dataset.
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
 #' @param symPrior All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
-#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired.
+#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
+#'   adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
+#'   PBT group, using the default prior can be more informative than you may intend.  
 #' 
 #' @export
 
 prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 verbose = TRUE, GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA, strataName = NA, symPrior = .01){
+									 variableValues = NA, variableValuesOth = NA, strataName = NA, symPrior = .5){
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){
 		nonValid <- sum(!is.na(trapData[,adFinCol]) & !(trapData[,adFinCol] %in% c("AD", "AI")))
@@ -144,24 +146,40 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 	### set up priors - these are default, user can modify them as they see fit before running the model
 	# these are alphas for Dirichlet priors
 	prior_piTot <- rep(symPrior, length(groups))
+	# for GSI groups only observed in PBT assigned fish, make prior zero
+	## means if no unassigned fish with that GSI group, estimate will be zero
+	for(i in (nPBT+1):length(groups)){
+		if(sum(gsiUT == groups[i]) == 0){
+			prior_piTot[i] <- 0
+		}
+	}
+	names(prior_piTot) <- groups # put dimension names on priors for easy editing by user
+
 	#for categorical variables
 	prior_piV <- list()
 	for(v in names_variables){
 		prior_piV[[v]] <- matrix(symPrior, nrow = length(groups), ncol = length(values[[v]])) # here just using a uniform for all
+		rownames(prior_piV[[v]]) <- groups # put dimension names on priors for easy editing by user
+		colnames(prior_piV[[v]]) <- values[[v]]
 	}
 	#for "other" categorical variables
 	prior_piVOth <- list()
 	for(v in names_variablesOth){
 		prior_piVOth[[v]] <- matrix(symPrior, nrow = length(groups), ncol = length(valuesOth[[v]])) # here just using a uniform for all
+		rownames(prior_piVOth[[v]]) <- groups # put dimension names on priors for easy editing by user
+		colnames(prior_piVOth[[v]]) <- valuesOth[[v]]
 	}
 	
 	#prior for GSI composition of PBT groups
 	prior_piGSI <- matrix(symPrior, nrow = nrow(tags), ncol = nGSI)
+	rownames(prior_piGSI) <- tags[,1] # put dimension names on priors for easy editing by user
+	colnames(prior_piGSI) <- GSIgroups
 	
 	
 	### initial values - these are default, user can modify them as they see fit before running the model
 	piTot <- rep(1/length(ohnc), length(ohnc)) #all equal
-	z <- sample(groups, sum(trapData[,PBTcol] == "Unassigned"), replace = TRUE) #all random
+	names(piTot) <- groups # put dimension names on initial values for easy editing by user
+	z <- gsiUT #all wild as observed
 	oUT <- rep(0, length(groups))
 	for(i in 1:length(groups)){
 		oUT[i] <- sum(z == groups[i])
@@ -170,11 +188,15 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 	pi_V <- list()
 	for(v in names_variables){
 		pi_V[[v]] <- matrix(1/length(values[[v]]), nrow = length(groups), ncol = length(values[[v]])) #all equal
+		rownames(pi_V[[v]]) <- groups # put dimension names on initial values for easy editing by user
+		colnames(pi_V[[v]]) <- values[[v]]
 	}
 	
 	pi_VOth<- list()
 	for(v in names_variablesOth){
 		pi_VOth[[v]] <- matrix(1/length(valuesOth[[v]]), nrow = length(groups), ncol = length(valuesOth[[v]])) #all equal
+		rownames(pi_VOth[[v]]) <- groups # put dimension names on initial values for easy editing by user
+		colnames(pi_VOth[[v]]) <- valuesOth[[v]]
 	}
 	
 	#proportions of groups that GSI assign to each GSI category
@@ -187,6 +209,8 @@ prepOneStrata <- function(trapData, tags, GSIcol, PBTcol, variableCols = c(), va
 		pi_gsi[i,currentCol] <- 1 #others were initialized at 0, so only set this one
 		currentCol <- currentCol + 1
 	}
+	rownames(pi_gsi) <- groups  # put dimension names on initial values for easy editing by user
+	colnames(pi_gsi) <- GSIgroups
 	
 	#convert some variables to ints and matrices instead of characters and lists, respectively
 	groupsInt <- 1:length(groups) #groups as ints instead of characters

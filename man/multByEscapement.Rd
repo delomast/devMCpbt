@@ -4,7 +4,7 @@
 \alias{multByEscapement}
 \title{Multiplies escapement estimates by composition estimates}
 \usage{
-multByEscapement(prepData, mainRes, clipRes = NA, escapementByStrata,
+multByEscapement(prepData, mainRes, clipRes = NA, popSizes,
   verbose = TRUE, writeSummary = TRUE, prefix = "", alpha = 0.1)
 }
 \arguments{
@@ -14,7 +14,7 @@ multByEscapement(prepData, mainRes, clipRes = NA, escapementByStrata,
 
 \item{clipRes}{the output of \code{estimStrataPropClip}}
 
-\item{escapementByStrata}{a list of population size estimates for each strata, in order, 
+\item{popSizes}{a list of population size estimates for each strata, in order, 
 with each strata being an entry in the list}
 
 \item{verbose}{FALSE to repress output written to the screen}

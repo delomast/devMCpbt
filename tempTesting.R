@@ -441,7 +441,7 @@ testData2 <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgrou
 testData2[[1]][,"AdClip"] <- testData2[[1]][,"AdClip"] == "AI"
 nrow(testData2[[1]])
 
-input <- prepOneStrataAI(testData2[[1]], testData2[[2]], "GSI", "GenParentHatchery", variableCols = c("Var1"), 
+input <- prepOneStrata(testData2[[1]], testData2[[2]], "GSI", "GenParentHatchery", variableCols = c("Var1"), 
 								 variableColsOth = c("Var2"), adFinCol = "AdClip", AI = TRUE, verbose = TRUE, GSIgroups = NA,
 									 variableValues = NA, variableValuesOth = NA)
 

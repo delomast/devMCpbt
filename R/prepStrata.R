@@ -25,13 +25,15 @@
 #'   groups are assumed to be 0).
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
 #' @param symPrior All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
-#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired.
+#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
+#'   adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
+#'   PBT group, using the default prior can be more informative than you may intend. 
 #' 
 #' @export
 
 prepStrata <- function(trapData, tags, GSIcol, PBTcol, strataCol, variableCols = c(), variableColsOth = c(), adFinCol, AI = TRUE, 
 									 GSIgroups = NA,
-									 variableValues = NA, variableValuesOth = NA, symPrior = .01, verbose = TRUE){
+									 variableValues = NA, variableValuesOth = NA, symPrior = .5, verbose = TRUE){
 	
 	#turn adFinCol into boolean if necessary
 	if(!is.logical(trapData[,adFinCol])){

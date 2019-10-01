@@ -6,7 +6,8 @@
 \usage{
 prepStrata(trapData, tags, GSIcol, PBTcol, strataCol, variableCols = c(),
   variableColsOth = c(), adFinCol, AI = TRUE, GSIgroups = NA,
-  variableValues = NA, variableValuesOth = NA, verbose = TRUE)
+  variableValues = NA, variableValuesOth = NA, symPrior = 0.5,
+  verbose = TRUE)
 }
 \arguments{
 \item{trapData}{dataframe with data for fish sampled from one strata - trap data for dam escapement}
@@ -40,6 +41,11 @@ a value other than a list is given (for example, NA), it uses the values present
 groups are assumed to be 0).}
 
 \item{variableValuesOth}{Same as variableValues, but for variableColsOth}
+
+\item{symPrior}{All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
+the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
+adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
+PBT group, using the default prior can be more informative than you may intend.}
 
 \item{verbose}{TRUE to print some messages, FALSE to not}
 }
