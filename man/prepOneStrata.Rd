@@ -14,10 +14,10 @@ prepOneStrata(trapData, tags, GSIcol, PBTcol, variableCols = c(),
 
 \item{tags}{dataframe with tag rates for all groups. This should NOT include the Unassigned group.}
 
-\item{GSIcol}{column name of column containing GSI assignments. If NA, the function gives all fish the same gsi assignment,
-which is equivalent to not having GSI information.}
+\item{GSIcol}{name of column containing GSI assignments. If you have no GSI information, create a column with
+the same value for all samples.}
 
-\item{PBTcol}{column name of column containing PBT assignments}
+\item{PBTcol}{name of column containing PBT assignments}
 
 \item{variableCols}{vector of column names of columns containing the variables to estimate composition and 
 to inform the group selection for PBT untagged fish}
@@ -25,7 +25,7 @@ to inform the group selection for PBT untagged fish}
 \item{variableColsOth}{vector of column names of columns containing the variables to estimate composition but 
 NOT inform the group selection for PBT untagged fish}
 
-\item{adFinCol}{column name of column containing adipose fin status - TRUE being intact FALSE being clipped, NA missing}
+\item{adFinCol}{name of column containing adipose fin status - TRUE (or AI) being intact FALSE (or AD) being clipped, NA missing}
 
 \item{AI}{TRUE to analyse ad-intact fish, FALSE to analyze ad-clipped fish}
 

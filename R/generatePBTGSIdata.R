@@ -1,4 +1,5 @@
 #' This function generates data for one strata.
+#' 
 #' To get multiple strata, run repeatedly and add strata variable
 #'
 #' @param PBT_GSI_calls matrix with rows equal to PBT groups, columns equal to GSI group and

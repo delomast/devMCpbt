@@ -2,8 +2,7 @@
 % Please edit documentation in R/generatePBTGSIdata.R
 \name{generatePBTGSIdata}
 \alias{generatePBTGSIdata}
-\title{This function generates data for one strata.
-To get multiple strata, run repeatedly and add strata variable}
+\title{This function generates data for one strata.}
 \usage{
 generatePBTGSIdata(sampRate = 0.1, censusSize = 3000,
   relSizePBTgroups = 1, tagRates = 0.8, obsTagRates = 0.8,
@@ -20,6 +19,5 @@ by GSI groups, columns being the categories for the variable, and values beign t
 group that has that variable value}
 }
 \description{
-This function generates data for one strata.
 To get multiple strata, run repeatedly and add strata variable
 }

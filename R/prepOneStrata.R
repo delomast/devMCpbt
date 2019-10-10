@@ -2,14 +2,14 @@
 #' 
 #' @param trapData dataframe with data for fish sampled from one strata - trap data for dam escapement
 #' @param tags dataframe with tag rates for all groups. This should NOT include the Unassigned group.
-#' @param GSIcol column name of column containing GSI assignments. If NA, the function gives all fish the same gsi assignment,
-#'   which is equivalent to not having GSI information.
-#' @param PBTcol column name of column containing PBT assignments
+#' @param GSIcol name of column containing GSI assignments. If you have no GSI information, create a column with
+#'   the same value for all samples.
+#' @param PBTcol name of column containing PBT assignments
 #' @param variableCols vector of column names of columns containing the variables to estimate composition and 
 #'   to inform the group selection for PBT untagged fish
 #' @param variableColsOth vector of column names of columns containing the variables to estimate composition but 
 #'   NOT inform the group selection for PBT untagged fish
-#' @param adFinCol column name of column containing adipose fin status - TRUE being intact FALSE being clipped, NA missing
+#' @param adFinCol name of column containing adipose fin status - TRUE (or AI) being intact FALSE (or AD) being clipped, NA missing
 #' @param AI TRUE to analyse ad-intact fish, FALSE to analyze ad-clipped fish
 #' @param verbose TRUE to print some messages, FALSE to not
 #' @param GSIgroups These are the values for all the GSI groups that you expect to be present in the population. If NA, then
