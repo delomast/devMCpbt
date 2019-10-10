@@ -30,7 +30,7 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 	}
 	
 	#don't need all the output from this, but it includes most things we need
-	allInput <- prepStrata(multStratData, tags, GSIcol, PBTcol, strataCol, variableCols = variableCols, variableColsOth = c(), adFinCol,
+	allInput <- prepStrata(trapData, tags, GSIcol, PBTcol, strataCol, variableCols = variableCols, variableColsOth = c(), adFinCol,
 								AI = TRUE, GSIgroups = NA,
 									 variableValues = NA, variableValuesOth = NA, verbose = FALSE, symPrior = .5)
 	
@@ -207,7 +207,7 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 			}
 		}
 		
-		estimates[[input$strataName]] <- list(piTot = ptestim, piGSI = piGSItemp, piVar = piVar, par = tempFit$par, strataName = input$strataName)
+		estimates[[input$strataName]] <- list(piTot = ptestim, piGSI = piGSItemp, piVar = piVar, strataName = input$strataName)
 	}
 	
 	return(estimates)

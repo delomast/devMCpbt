@@ -560,3 +560,82 @@ propEstimates <- estimStrataMCpbt(mainInput, iter = 1000, burnIn = 100, thin = 1
 
 countEstimates <- multByEscapement(mainInput, mainRes = propEstimates, popSizes = list(rep(3000, 900)),
 writeSummary = TRUE)
+
+############################################################################################################################
+############################################################################################################################
+############################################################################################################################
+############################################################################################################################
+############################################################################################################################
+############################################################################################################################
+# testing MLE functions
+
+varMat <- list(
+	matrix(c(rep(c(.1,.9), 3), rep(c(.9,.1), 3)), nrow = 6, ncol = 2, byrow = TRUE),
+	matrix(c(rep(c(.4,.6), 3), rep(c(.6,.4), 3)), nrow = 6, ncol = 2, byrow = TRUE)
+)
+pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byrow = TRUE)
+# pbtGSImat <- matrix(1/3, nrow = 3, ncol = 3)
+
+multStratData <- data.frame()
+tempDataAll <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), physTagRates = 0,
+			    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat)
+tempData <- tempDataAll[[1]]
+tempData$StrataVar <- 1
+multStratData <- rbind(multStratData, tempData)
+
+multStratData$GSI <- paste0("GSIgroup", multStratData$GSI)
+tags <- tempDataAll[[2]]
+
+table(multStratData$GSI, multStratData$GenParentHatchery)
+table(multStratData$Var1, multStratData$GenParentHatchery)
+
+#no variable
+MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 5000))[[1]]
+
+#with variable
+MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "Nelder-Mead", variableCols = c("Var1"), control = list(maxit = 5000))[[1]]
+
+################################
+# bootstrapping with MLE
+
+nrow(multStratData)
+
+estimate <- MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 5000))[[1]]
+
+bootPT <- matrix(0, nrow = 1000, ncol = length(estimate$piTot))
+colnames(bootPT) <- names(estimate$piTot)
+system.time(
+for(b in 1:1000){
+	data <- multStratData[sample(1:nrow(multStratData), nrow(multStratData), replace = TRUE),]
+	# print(table(data$GenParentHatchery))
+	res <- MLEwrapper(data, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 5000))[[1]]$piTot
+	# print(res)
+	bootPT[b,names(res)] <- res
+}
+)
+  #  user  system elapsed 
+  # 96.04    0.00   96.19
+
+system.time(
+		fishCompTools::SCOBI_deux_fast(adultData = multStratData, windowData = cbind(1,3000,1),
+			 Run = "W_sim", RTYPE = "wild", Hierarch_variables = c("GSI"),
+	                  SizeCut = NULL, alph = 0.1, B = 1000, writeBoot = F, pbtRates = tags,
+			 adClipVariable = "AdClip", physTagsVariable = "PhysTag", pbtGroupVariable = "GenParentHatchery",
+			 screenOutput = "tempScreen.txt", dataGroupVariable = "StrataVar")
+)
+   # user  system elapsed 
+   # 5.92    0.84   10.03
+
+# SD is much faster, even if running it twice to get both W and HNC comp
+
+apply(bootPT,2, quantile, c(.05, .95))
+
+sdres <- read.table("W_sim_CI_Hier_GSI.txt", sep = "\t", stringsAsFactors = FALSE, header = TRUE)
+estimate
+sdres[,2:4] / 3000
+
+#estiamtes and CI's pratctially the same

@@ -11,7 +11,7 @@
 #'   
 #' @export
 
-generatePBTGSIdata <- function(sampRate = .1, censusSize = 3000, relSizePBTgroups = 1, tagRates = .8, obsTagRates = .8, physTagRates = 0,
+generatePBTGSIdata <- function(sampRate = .1, censusSize = 3000, relSizePBTgroups = 1, tagRates = .8, obsTagRates = tagRates, physTagRates = 0,
 				    true_clipped = .5, true_noclip_H = .2, true_wild = .3, relSizeGSIgroups = 1, PBT_GSI_calls = 1, varMatList = NA){
 	
 	# check tag rates all between 0 and 1

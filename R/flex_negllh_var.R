@@ -62,7 +62,7 @@ flex_negllh_var <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, pbtGSI
 	# now, calculate the log likelihood
 	llh <- 0
 	# first ohnc part
-	if(nPBT > 0) llh <- sum(ohnc * log(piTot[1:nPBT] * t[1:nPBT]))
+	if(nPBT > 0) llh <- sum(ohnc[1:nPBT] * log(piTot[1:nPBT] * t[1:nPBT]))
 	# then ohnc GSI part
 	if(nPBT > 0){
 		for(i in 1:nPBT){
