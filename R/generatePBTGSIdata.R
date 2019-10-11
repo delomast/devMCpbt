@@ -1,12 +1,25 @@
-#' This function generates data for one strata.
+#' This function simulates data for one strata.
 #' 
-#' To get multiple strata, run repeatedly and add strata variable
-#'
-#' @param PBT_GSI_calls matrix with rows equal to PBT groups, columns equal to GSI group and
-#'   values giving the proportions of teh PBT fish that GSI assign to that GSI group
-#' @param varMatList list of matrices, one for each variable. rows are PBT/GSI groups, in order of PBT groups followed
-#'   by GSI groups, columns being the categories for the variable, and values beign the proportion of the
-#'   group that has that variable value
+#' To simulate multiple strata, one can run this repeatedly and add a strata variable
+#' 
+#' @param sampRate the probability of sampling an individual in the population
+#' @param censusSize the total size of the populations
+#' @param relSizePBTgroups a numeric vector giving the relative sizes of the adipose fin intact PBT tagged groups
+#' @param tagRates a numeric vector giving the true PBT tag rates of the PBT tagged groups, in the
+#'  same order as \code{relSizePBTgroups}
+#' @param obsTagRates a numeric vector giving the PBT tag rates of the PBT tagged groups to use when creating the
+#'  tag rate output, in the same order as \code{relSizePBTgroups}
+#' @param physTagRates a numeric vector giving the true physical tagging rate (CWTs, PIT tags) of the PBT tagged groups, in the
+#'  same order as \code{relSizePBTgroups}. Physical tagging is assumed to be independent of PBT tagging
+#' @param true_clipped the true proportion of the population with a clipped adipose fin
+#' @param true_noclip_H the true proportion of the population that is hatchery origin and has an intact adipose fin 
+#' @param true_wild the true proportion of the population that is wild origin
+#' @param relSizeGSIgroups a numeric vector giving the relative sizes of GSI groups within the wild population
+#' @param PBT_GSI_calls a numeric matrix with rows equal to PBT groups, columns equal to GSI group and
+#'   values giving the true proportions of the PBT fish that GSI assign to that GSI group
+#' @param varMatList a list of numeric matrices, one for each variable. Rows are PBT/GSI groups, in order of PBT groups followed
+#'   by GSI groups, columns being the categories for the variable, and values being the proportion of the
+#'   group in that category
 #'   
 #'   
 #' @export

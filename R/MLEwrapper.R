@@ -1,6 +1,8 @@
 #' Find maximum likelihood estimates for composition
 #' 
-#' The likelihood is maximized using \code{optim} and some typically close, but quick to calculate, starting values
+#' The likelihood is maximized using \code{optim} and some typically close, but quick to calculate, starting values.
+#' If estimating composition of a separate variable, all samples with missing data for this variable must be removed
+#' prior to running this function.
 #' 
 #' @param trapData a dataframe with a rwo for each individual and columns for GSI assignment, PBT assignment, etc.
 #' @param tags a dataframe with the first column containing names of PBT groups, and the second column containing

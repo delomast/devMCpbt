@@ -1,10 +1,10 @@
 ---
-title: "Composition_Estimates_all_ad_intact"
+title: "Composition Estimates with MCMC (ad-intact or no ad-clip information)"
 author: "Thomas Delomas"
 date: "9-16-2019"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Composition_Estimates_all_ad_intact}
+  %\VignetteIndexEntry{Composition_Estimates_MCMC_ad_intact}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -26,7 +26,7 @@ This may be encountered in multiple scenarios, such as:
 
 * The entire population you are sampling is ad-intact
 * You estimate population sizes separately for ad-intact and ad-clipped fish
-* You do not wish to differentiate between ad-intact and ad-clipped (so you can analyze them as if they are all ad-intact)
+* You do not differentiate between ad-intact and ad-clipped (so you can analyze them as if they are all ad-intact)
 * The species does not have an adipose fin (so you can analyze them as if they are all ad-intact)
 
 This document will work through a scenario where the samples are grouped into three strata.
@@ -104,9 +104,9 @@ GSI groups.
 
 ```{r}
 # specifying a seed to make the anlaysis reproducible
-# running 11000 iterations wiht 1000 burn-in and no thinning
-# this will yield 10000 recorded MCMC samples
-propEstimates <- estimStrataMCpbt(mainInput, iter = 11000, burnIn = 1000, thin = 1, seed = 7)
+# running  iterations with  burn-in and no thinning
+# this will yield  recorded MCMC samples
+propEstimates <- estimStrataMCpbt(mainInput, iter = 3000, burnIn = 500, thin = 1, seed = 7)
 ```
 
 The results are structured as a list for each strata:
@@ -134,12 +134,13 @@ size. In this case, we will assume a population size of 3000 in strata 1 and 2, 
 1500 in strata 3. We turn this into an input the function can use as such:
 
 ```{r}
+nPost <- nrow(propEstimates[[1]]$piTot)
 popSizeEstimates <- list() # a list with one entry per strata
-popSizeEstimates <- list(rep(3000, 10000),
-					  rep(3000, 10000),
-					  rep(1500, 10000))
+popSizeEstimates <- list(rep(3000, nPost),
+					  rep(3000, nPost),
+					  rep(1500, nPost))
 # note that if our population size was an estimate from a given distribution,
-#   we would take 10000 samples from this distribution for each strata, and
+#   we would take nPost samples from this distribution for each strata, and
 #   organize them as a list, just as we are doing here
 ```
 
@@ -164,6 +165,7 @@ rearType <- read.table("RearTypeSummary.txt", sep = "\t", header = TRUE, strings
 stockComp <- read.table("StockCompSummary.txt", sep = "\t", header = TRUE, stringsAsFactors = FALSE)
 head(rearType)
 head(stockComp)
+file.remove(c("RearTypeSummary.txt", "StockCompSummary.txt")) #clean up unneeded output files
 ```
 
 The variable `countEstimates` has the raw estimates calculated by multiplying the 

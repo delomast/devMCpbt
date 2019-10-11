@@ -1,4 +1,8 @@
-#' This function takes data in a standard table format and prepares it for one strata for MCpbt
+#' This function takes data as a dataframe with one row per observation and prepares it for one strata for MCpbt
+#' 
+#' This function is called by \code{prepStrata}. This function may be of use to you in writing your own wrapper,
+#' or performing a specific analysis, but generally users should use \code{prepStrata} to prepare their data for
+#' \code{estimStrataMCpbt}. 
 #' 
 #' @param trapData dataframe with data for fish sampled from one strata - trap data for dam escapement
 #' @param tags dataframe with tag rates for all groups. This should NOT include the Unassigned group.
@@ -19,9 +23,7 @@
 #'   a value other than a list is given (for example, NA), it uses the values present in the dataset.
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
 #' @param symPrior All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
-#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
-#'   adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
-#'   PBT group, using the default prior can be more informative than you may intend.  
+#'   the priors. You can, and are encouraged to, manually adjust the priors as you see fit prior to running the MCMC chain.  
 #' 
 #' @export
 

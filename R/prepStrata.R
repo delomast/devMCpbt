@@ -1,4 +1,4 @@
-#' This function prepares the data to run multiple strata
+#' This function prepares data to run multiple strata
 #' 
 #' The model is actually run by a separate function in order to allow
 #' a user to edit the priors and initial values before running.
@@ -25,9 +25,7 @@
 #'   groups are assumed to be 0).
 #' @param variableValuesOth Same as variableValues, but for variableColsOth
 #' @param symPrior All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
-#'   the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
-#'   adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
-#'   PBT group, using the default prior can be more informative than you may intend. 
+#'   the priors. You can, and are encouraged to, manually adjust the priors as you see fit prior to running the MCMC chain. 
 #' 
 #' @export
 
