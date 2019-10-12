@@ -21,7 +21,7 @@ library(devMCpbt)
 ```
 
 ## Introduction
-This document will walk through how to assess composition of groups of all ad-intact fish into PBT and GSI groups. 
+This document will walk through how to estimate composition of a mixture of all ad-intact fish by PBT and GSI groups using a Bayesian approach. **if you do not separate wild origin fish by GSI assignments, you can create a dummy variable that gives all fish  (including PBT-assigned fish) the same GSI assignment**
 This may be encountered in multiple scenarios, such as:
 
 * The entire population you are sampling is ad-intact
@@ -56,7 +56,8 @@ head(multStratData)
 
 Now we have a dataframe named `multStratData` with a column describing whether a fish is ad-clipped or ad-intact 
 (values of AD and AI, respectively), a column denoting if the fish has a physical tag that 
-identifies it as hatchery origin (ignore this column for this vignette), a column with the 
+identifies it as hatchery origin (ignore this column for this vignette, the data we generated
+has no physical tags), a column with the 
 PBT assignment (Unassigned means it was attempted to be assigned, but did not have a match),
 a column with GSI assignments, and a column giving the strata that sample belongs to.
 
