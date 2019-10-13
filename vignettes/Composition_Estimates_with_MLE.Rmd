@@ -21,7 +21,7 @@ library(devMCpbt)
 ```
 
 ## Introduction
-This document will walk through how to estimate composition of a mixture of all ad-intact fish by PBT and GSI groups using maximum likelihood estimation. **if you do not separate wild origin fish by GSI assignments, you can create a dummy variable that gives all fish  (including PBT-assigned fish) the same GSI assignment**
+This document will walk through how to estimate composition of a mixture of all ad-intact fish by PBT and GSI groups using maximum likelihood estimation. **if you do not separate wild origin fish by GSI assignments, you can create a dummy variable that gives all fish  (including PBT-assigned fish) the same GSI assignment.**
 
 
 A scenario of all ad-intact fish may be encountered for many reasons, including:
@@ -37,7 +37,7 @@ This document will work through a scenario where the samples are grouped into th
 First, we will generate some data using the built in data-simulation function.
 
 ```{r}
-
+set.seed(130) #make generated data reproducible
 # define the unknown "true" proportions at which fish in each
 # PBT group assign to the different GSI groups
 pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byrow = TRUE)
@@ -88,7 +88,7 @@ If we specified the column name of a categorical variable when we called `MLEwra
 
 The `strataName` item is the value of the name of the strata that this entry was estimated from.
 
-## going from proportions to numbers
+## Going from proportions to numbers in the population
 
 Now we have the estimates as proportions, if we have an estimate of the total population size for each strata, we can simply multiply the size by `piTot` for each strata, and this will yield estimates for the number of fish in each category within each strata. To obtain an estimate across all strata, we can then simply sum them up as appropriate.
 
@@ -113,16 +113,93 @@ Now, we have the number of fish in each strata, and to get the number of fish in
 colSums(strataComp)
 ```
 
-## confidence intervals
-To get confidence intervals for these estimates, we can use non-parametric bootstrapping. This is computationally intensive, so it may take a while depending on how much data you have. We will set up a simple `for` loop to perform the bootstrapping, and we will save the estiamtes from each iteration. In this example, we are only interested in `piTot`, but if you were intereted in the other estimates, you would want to save them as well.
+## Confidence intervals
+To get confidence intervals for these estimates, we can use non-parametric bootstrapping. This is computationally intensive and the code is not particularly well optimized, so it may take a while depending on how much data you have. We will set up a simple `for` loop to perform the bootstrapping, and we will save the estiamtes from each iteration. In this example, we are only interested in `piTot`, but if you were intereted in the other estimates, you would want to save them as well. We are also only going to generate confidence intervals for all strata combined, but you could save the results for each strata separately if you wanted a confidence interval for each strata.
 
 ```{r, eval=FALSE}
+### NOT RUN
 # the number of bootstraps we will perform
 bootRep <- 5000
 # a data structure to save the estimates
 #each row is an estimate, each column is a group
 bootPiTot <- matrix(0, nrow = bootRep, ncol = 6)
 colnames(bootPiTot) <- colnames(strataComp) #pulling the group names from strataComp
-
+#separate data by strata
+dataByStrata <- list()
+for(s in unique(multStratData$Strata)){
+	dataByStrata[[as.character(s)]] <-  multStratData[multStratData$Strata == s,]
+}
+for(b in 1:bootRep){
+	#resample each strata separately
+	bootData <- data.frame()
+	for(d in dataByStrata){
+		bootData <- rbind(bootData, d[sample(1:nrow(d), nrow(d), replace = TRUE),])
+	}
+	#get estimates for each strata with resampled data
+	bootEst <- MLEwrapper(bootData, tags = tags, GSIcol = "GSI", PBTcol = "GenParentHatchery", strataCol = "Strata", adFinCol = "AdClip", AI = TRUE, optimMethod = "Nelder-Mead", variableCols = NULL, control = list(maxit=5000))
+	#now multiply be population size
+	bootStrataComp <- list(
+			bootEst[[1]]$piTot * 3000,
+			bootEst[[2]]$piTot * 3000,
+			bootEst[[3]]$piTot * 1500
+		)
+	#now sum up across strata and add to bootPiTot
+	for(g in colnames(bootPiTot)){
+		tempSum <- 0
+		for(strat in bootStrataComp){
+			# removign NA in case group does not exist in this resample
+			tempSum <- sum(tempSum, strat[g], na.rm = TRUE)
+		}
+		bootPiTot[b,g] <- tempSum
+	}
+}
+#now, let's calculate a 90% CI
+apply(bootPiTot, 2, quantile, c(.05, .95))
 
 ```
+
+## Now, let's add a variable
+
+Let's say you also want to determine that composition of each group according to one particular **categorical** variable. Suppose you want to estiamte the proportions of each group that are female.
+
+First, we get some data, following the same scenario as above:
+
+```{r}
+set.seed(13) #make generated data reproducible
+# define the unknown "true" proportions at which fish in each
+# PBT group assign to the different GSI groups
+pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byrow = TRUE)
+
+#define the "true" proportions of each group that are male and female
+# we will have a moderate difference between the PBT and wild groups
+varMat <- list(
+	matrix(c(rep(c(.4,.6), 3), rep(c(.6,.4), 3)), nrow = 6, ncol = 2, byrow = TRUE)
+)
+
+# now generate three strata from identical parameters
+multStratData <- data.frame()
+for(i in 1:3){
+	tempData <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), physTagRates = 0, true_clipped = 0, true_noclip_H = .4, true_wild = .6, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat)
+	trapData <- tempData[[1]]
+	trapData$Strata <- i
+	multStratData <- rbind(multStratData, trapData)
+}
+tags <- tempData[[2]] # get the tag rates for the PBT groups
+multStratData$GSI <- paste0("GSIgroup_", multStratData$GSI)
+multStratData$Var1[multStratData$Var1 == 1] <- "F"
+multStratData$Var1[multStratData$Var1 == 2] <- "M"
+colnames(multStratData)[colnames(multStratData) == "Var1"] <- "Sex"
+
+head(multStratData)
+```
+
+Then, we use the `MLEwrapper` function as before, but we specify the column name of the categorical variable with the `variableCols = ` option:
+
+```{r}
+withVarEstimates <- MLEwrapper(multStratData, tags = tags, GSIcol = "GSI", PBTcol = "GenParentHatchery", strataCol = "Strata", adFinCol = "AdClip", AI = TRUE, optimMethod = "Nelder-Mead", variableCols = "Sex", control = list(maxit=5000))
+
+## now look at the first strata
+print(withVarEstimates[[1]])
+```
+
+Now, we have the estimated the proportions male and female for each group and each strata as the `piVar` items.
