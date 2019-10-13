@@ -207,6 +207,8 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 				}
 				piVar[i,] <- piVar[i,] / sum(piVar[i,])
 			}
+			colnames(piVar) <- input$variKey[[1]][,1]
+			rownames(piVar) <- input$groupsKey[,1]
 		}
 		
 		estimates[[input$strataName]] <- list(piTot = ptestim, piGSI = piGSItemp, piVar = piVar, strataName = input$strataName)
