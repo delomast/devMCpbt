@@ -81,8 +81,8 @@ multByEscapement <- function(prepData, mainRes, clipRes = NA, popSizes, verbose 
 		}
 	}
 	
-	if(verbose && AI) cat("\nDecomposing ad-intact fish")
-	if(verbose && !AI) cat("\nDecomposing ad-clipped fish")
+	if(verbose && AI) cat("\nDecomposing ad-intact fish\n")
+	if(verbose && !AI) cat("\nDecomposing ad-clipped fish\n")
 	
 	strataEstimates <- list()
 	#for each strata
