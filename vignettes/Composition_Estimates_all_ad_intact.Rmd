@@ -43,7 +43,7 @@ pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byr
 # now generate three strata from identical parameters
 multStratData <- data.frame()
 for(i in 1:3){
-	tempData <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), obsTagRates = c(.8, .85,.9), physTagRates = 0, true_clipped = 0, true_noclip_H = .4, true_wild = .6, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat)
+	tempData <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), physTagRates = 0, true_clipped = 0, true_noclip_H = .4, true_wild = .6, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat)
 	trapData <- tempData[[1]]
 	trapData$Strata <- i
 	multStratData <- rbind(multStratData, trapData)
@@ -90,9 +90,7 @@ priors changed, you must do it for all strata). Here is the structure of the inp
 str(mainInput[[1]])
 ```
 
-[*Will put in here later an explanation of all the parts of the input*
-*or potentially will have a vignette on more in-depth usage with an explanation of all*
-*the parts and can just reference that.*]
+*For details on the structure of the input, please see the vignette titled "Structure of input and output of MCMC wrapper functions"*
 
 
 ##Third, we generate the estimates
@@ -124,7 +122,7 @@ plot(propEstimates[[1]]$piTot[,1])
 plot(propEstimates[[1]]$piTot[,5])
 ```
 
-[*can either explain results structure here, or in a separate vignette.*]
+*For details on the structure of the results, please see the vignette titled "Structure of input and output of MCMC wrapper functions"*
 
 
 ## Fourth, we multiply by the estimated population size
@@ -177,4 +175,4 @@ of interest or to calculate CIs using other methods.
 str(countEstimates)
 ```
 
-[*either add explanation of output or reference another vignette that does*]
+*For details on the structure of the results, please see the vignette titled "Structure of input and output of MCMC wrapper functions"*
