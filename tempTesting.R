@@ -577,25 +577,30 @@ pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byr
 # pbtGSImat <- matrix(1/3, nrow = 3, ncol = 3)
 
 multStratData <- data.frame()
-tempDataAll <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.8, .85,.9), physTagRates = 0,
+tempDataAll <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.7, .1,.9), physTagRates = 0,
 			    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat)
 tempData <- tempDataAll[[1]]
 tempData$StrataVar <- 1
 multStratData <- rbind(multStratData, tempData)
 
-multStratData$GSI <- paste0("GSIgroup", multStratData$GSI)
 tags <- tempDataAll[[2]]
 
-table(multStratData$GSI, multStratData$GenParentHatchery)
+table(multStratData$GenParentHatchery, multStratData$GSI)
+
 table(multStratData$Var1, multStratData$GenParentHatchery)
+
+table(multStratData$GenParentHatchery)[1:3] / tags[,2] / nrow(multStratData)
+
+
+# multStratData[multStratData$GenParentHatchery == "Unassigned", "GSI"] <- "GSIgroup2" 
 
 #no variable
 MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
-			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 5000))[[1]]
+			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 10000))[[1]]
 
 #with variable
 MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
-			  optimMethod = "Nelder-Mead", variableCols = c("Var1"), control = list(maxit = 5000))[[1]]
+			  optimMethod = "Nelder-Mead", variableCols = c("Var1"), control = list(maxit = 10000))[[1]]
 
 ################################
 # bootstrapping with MLE

@@ -67,58 +67,19 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 				}
 			}
 		}
-		#number of parameters to optimize - this was before reasonable starting values were implemented and
-		#  start was all equal
-		# nParam <- nPBT + nGSI - 1
-		
-		# create pbtGSIkey
-		pbtGSIkey <- list()
-		if(nPBT > 0){
-			for(i in 1:nPBT){
-				pbtGSIkey[[i]] <- which(input$ohnc_gsi[i,] > 0)[1]
-				# nParam <- nParam + length(pbtGSIkey[[i]]) - 1
-			}
-		}
 
-		# create varKey
-		if(varBool){
-			varKey <- list()
-			if(nPBT > 0){
-				for(i in 1:nPBT){
-					varKey[[i]] <- which(input$pi_Vohnc[[1]][i,] > 0)[1]
-					# nParam <- nParam + length(varKey[[i]]) - 1
-				}
-			}
-			for(i in 1:nGSI){
-				#determine which categories have un-tagged fish with this GSI assignment
-				tempCounts <- c()
-				for(val in input$values[[1]]){
-					tempCounts <- c(tempCounts, sum(input$gsiUT == input$GSI_values[i] & input$v_ut[,1] == val))
-				}
-				varKey[[nPBT + i]] <- which(tempCounts > 0)[1]
-				# nParam <- nParam + length(varKey[[nPBT + i]]) - 1
-			}
-		}
 		
 		# determine reasonable starting values
 		#for piTot
 		start_piTot <- c()
 		if(nPBT > 0) start_piTot <- ohnc[1:nPBT] / t[1:nPBT] #scale PBT by tag rates
 		start_piTot <- c(start_piTot, utGSI) #just use observed GSI
-		start_piTot <- start_piTot / sum(start_piTot) #normalize
-		start_piTot <- start_piTot / start_piTot[1] # scale against first group
-		start_piTot <- start_piTot[2:length(start_piTot)] #remove first group
-		
+
 		#for piGSI
 		start_piGSI <- c()
 		for(i in 1:nrow(ohnc_gsi)){
 			temp <- ohnc_gsi[i,] #just use ohnc assignments
 			temp[temp < 1] <- .1
-			temp <- temp / sum(temp)
-			temp <- temp / temp[pbtGSIkey[[i]]]
-			pos <- 1:length(temp)
-			pos <- pos[pos != pbtGSIkey[[i]]]
-			temp <- temp[pos]
 			start_piGSI <- c(start_piGSI, temp)
 		}
 		
@@ -128,24 +89,16 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 			for(i in 1:nrow(ohnc_var)){
 				temp <- ohnc_var[i,] #just use ohnc assignments
 				temp[temp < 1] <- .1
-				temp <- temp / sum(temp)
-				temp <- temp / temp[varKey[[i]]]
-				pos <- 1:length(temp)
-				pos <- pos[pos != varKey[[i]]]
-				temp <- temp[pos]
 				start_piVar <- c(start_piVar, temp)
 			}
 			# then ut fish
 			for(i in 1:nGSI){
-				#determine which categories have un-tagged fish with this GSI assignment
+				#count un-tagged fish with this GSI assignment and each category
 				temp <- c()
 				for(val in input$values[[1]]){
 					temp <- c(temp, sum(input$gsiUT == input$GSI_values[i] & input$v_ut[,1] == val))
 				}
-				temp <- temp / sum(temp)
-				temp <- temp[temp > 0]
-				temp <- temp / temp[1]
-				if(length(temp) > 1) start_piVar <- c(start_piVar, temp[2:length(temp)])
+				start_piVar <- c(start_piVar, temp)
 			}
 		}
 
@@ -154,12 +107,12 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 		if(varBool){
 			tempFit <- optim(c(start_piTot, start_piGSI, start_piVar), flex_negllh_var, method = optimMethod, ...,
 					 #arguments to pass to flex_negllh
-					 nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi, pbtGSIkey = pbtGSIkey,
-					 utVar = utVar, ohnc_var = ohnc_var, varKey = varKey, nCat = nCat)
+					 nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi,
+					 utVar = utVar, ohnc_var = ohnc_var, nCat = nCat)
 		} else {
 			tempFit <- optim(c(start_piTot, start_piGSI), flex_negllh_allGSI, method = optimMethod, ...,
 								 #arguments to pass to flex_negllh
-								 nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi, pbtGSIkey = pbtGSIkey)
+								 nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi)
 		}
 		if(tempFit$convergence != 0) cat("\nOptimizer gave convergence code of", tempFit$convergence, "in strata", input$strataName, "\n")
 		
@@ -168,23 +121,17 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 
 		#unpack values
 		# unpack piTot
-		ptestim <- c(1, tempFit$par[1:(nPBT + nGSI - 1)])
+		ptestim <- tempFit$par[1:(nPBT + nGSI)]
 		ptestim <- ptestim / sum(ptestim)
 		names(ptestim) <- input$groupsKey[,1]
 		
 		# piGSI
-		subParams <- tempFit$par[(nPBT + nGSI):length(tempFit$par)]
+		subParams <- tempFit$par[(nPBT + nGSI + 1):length(tempFit$par)]
 		piGSItemp <- matrix(0, nrow = (nPBT), ncol = (nGSI)) #initiate with zeros
 		if(nPBT > 0){
 			for(i in 1:nPBT){
-				key <- pbtGSIkey[[i]]
-				piGSItemp[i,key] <- 1 #first non-zero group is fixed
-				pos <- 1:nGSI
-				pos <- pos[pos != key]
-				if(length(pos) > 0){
-					piGSItemp[i,pos] <- subParams[1:length(pos)]
-					subParams <- subParams[(length(pos) + 1):length(subParams)]
-				}
+				piGSItemp[i,] <- subParams[1:nGSI]
+				subParams <- subParams[(nGSI + 1):length(subParams)]
 				piGSItemp[i,] <- piGSItemp[i,] / sum(piGSItemp[i,])
 			}
 		}
@@ -197,14 +144,8 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 		if(varBool){
 			piVar <- matrix(0, nrow = (nPBT + nGSI), ncol = nCat) #initiate with zeros
 			for(i in 1:(nPBT +  nGSI)){
-				key <- varKey[[i]]
-				piVar[i,key] <- 1 #first non-zero group is fixed
-				pos <- 1:nCat
-				pos <- pos[pos != key]
-				if(length(pos) > 0){
-					piVar[i,pos] <- subParams[1:length(pos)]
-					subParams <- subParams[(length(pos) + 1):length(subParams)]
-				}
+				piVar[i,] <- subParams[1:nCat]
+				subParams <- subParams[(nCat + 1):length(subParams)]
 				piVar[i,] <- piVar[i,] / sum(piVar[i,])
 			}
 			colnames(piVar) <- input$variKey[[1]][,1]

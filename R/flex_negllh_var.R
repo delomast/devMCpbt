@@ -9,36 +9,26 @@
 #' @param t vector of tag rates for all PBT and GSI groups (gsi groups should be 0)
 #' @param utGSI vector of number of un-PBT assigned fish in each GSI group
 #' @param ohnc_gsi matrix of counts of fish GSI assigned to various groups
-#' @param pbtGSIkey list with a vector telling which GSI groups (as integers giving their position in the order) are nonzero for
-#'   each PBT group
 #' @param utVar matrix of numbers of un-PBT assigned fish in each GSI group (row) x category of the variable (column)
 #' @param ohnc_var matrix of counts of PBT-assigned fish in each category (rows are PBT groups)
-#' @param varKey list of vectors telling which categories (as integers giving their position in the order) are nonzero for each PBT
-#'   and GSI group
 #' @param nCat the numbers of categories in the variable
 #'  
 
-flex_negllh_var <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, pbtGSIkey,
-									 utVar, ohnc_var, varKey, nCat){
+flex_negllh_var <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi,
+									 utVar, ohnc_var, nCat){
 	# first, unpack params
 	#piTot
-	piTot <- c(1, params[1:(nPBT + nGSI - 1)])
+	piTot <- params[1:(nPBT + nGSI)]
 	piTot <- piTot / sum(piTot) #transform into proportions
 	if(sum(piTot < 0 | piTot > 1) != 0) return(Inf)
 	#piGSI
-	subParams <- params[(nPBT + nGSI):length(params)]
+	# piGSItemp <- matrix(params[(nPBT + nGSI):length(params)], nrow = (nPBT), ncol = (nGSI-1), byrow = TRUE)
+	subParams <- params[(nPBT + nGSI + 1):length(params)]
 	piGSItemp <- matrix(0, nrow = (nPBT), ncol = (nGSI)) #initiate with zeros
 	if(nPBT > 0){
 		for(i in 1:nPBT){
-			key <- pbtGSIkey[[i]]
-			piGSItemp[i,key] <- 1 # group that is fixed
-			lk <- length(key)
-			tempPos <- 1:nGSI
-			tempPos <- tempPos[tempPos != key]
-			if(length(tempPos) > 0){
-				piGSItemp[i,tempPos] <- subParams[1:length(tempPos)]
-				subParams <- subParams[(length(tempPos) + 1):length(subParams)] #bump entries forward
-			}
+			piGSItemp[i,] <- subParams[1:nGSI]
+			subParams <- subParams[(nGSI + 1):length(subParams)] #bump entries forward
 			piGSItemp[i,] <- piGSItemp[i,] / sum(piGSItemp[i,]) #normalize
 			if(sum(piGSItemp[i,] < 0 | piGSItemp[i,] > 1) != 0) return(Inf) #make sure all entries are valid
 		}
@@ -47,15 +37,9 @@ flex_negllh_var <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, pbtGSI
 	#piVar
 	piVar <- matrix(0, nrow = (nPBT + nGSI), ncol = nCat) #initiate with zeros
 	for(i in 1:(nPBT +  nGSI)){
-		key <- varKey[[i]]
-		piVar[i,key] <- 1 #first non-zero group is fixed
-		pos <- 1:nCat
-		pos <- pos[pos != key]
-		if(length(pos) > 0){
-			piVar[i,pos] <- subParams[1:length(pos)]
-			subParams <- subParams[(length(pos) + 1):length(subParams)]
-		}
-		piVar[i,] <- piVar[i,] / sum(piVar[i,])
+		piVar[i,] <- subParams[1:nCat]
+		subParams <- subParams[(nCat + 1):length(subParams)] #bump entries forward
+		piVar[i,] <- piVar[i,] / sum(piVar[i,]) #normalize
 		if(sum(piVar[i,] < 0 | piVar[i,] > 1) != 0) return(Inf) #make sure all entries are valid
 	}
 
