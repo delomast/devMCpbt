@@ -69,9 +69,8 @@ The likelihood equation is defined in the package, and a wrapper in the package 
 
 
 ```{r}
-	#the control option is passed to optim, telling it to run up to 5000 iterations
-	mlePointEstimates <- MLEwrapper(multStratData, tags = tags, GSIcol = "GSI", PBTcol = "GenParentHatchery", strataCol = "Strata", adFinCol = "AdClip", AI = TRUE, optimMethod = "Nelder-Mead", variableCols = NULL, control = list(maxit=5000))
-
+#the control option is passed to optim, telling it to run up to 5000 iterations
+mlePointEstimates <- MLEwrapper(multStratData, tags = tags, GSIcol = "GSI", PBTcol = "GenParentHatchery", strataCol = "Strata", adFinCol = "AdClip", AI = TRUE, optimMethod = "Nelder-Mead", variableCols = NULL, control = list(maxit=5000))
 ```
 
 ## Structure of the results
