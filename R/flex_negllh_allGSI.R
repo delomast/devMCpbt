@@ -27,7 +27,6 @@ flex_negllh_allGSI <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, pbt
 		for(i in 1:nPBT){
 			key <- pbtGSIkey[[i]]
 			piGSItemp[i,key] <- 1 # group that is fixed
-			lk <- length(key)
 			tempPos <- 1:nGSI
 			tempPos <- tempPos[tempPos != key]
 			if(length(tempPos) > 0){

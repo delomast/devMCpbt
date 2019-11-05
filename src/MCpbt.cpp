@@ -227,9 +227,9 @@ Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall pa
 	//cycle through iterations
 	int thin2 = 1;
 	for (int r=0, maxIter = NumResults + burnIn; r < maxIter; r++){
-		if(r >= burnIn) thin2 = thin; //this runs the number of burnin iterations, then runs enough to get the specified number of recordings
+		if(r == burnIn) thin2 = thin; //this runs the number of burnin iterations, then runs enough to get the specified number of recordings
 		//cycle through thinning reps between recording values
-		for (int t=0; t < thin2; t++){
+		for (int th=0; th < thin2; th++){
 			
 			// sample from pi_tot
 			for(int i=0; i < nGroups; i++){ //calculating the alphas of the Dirichlet
@@ -388,8 +388,8 @@ Rcpp::List MCpbt(int iter, int burnIn, int thin, unsigned int seed, //overall pa
 			currentEntry++;
 		}
 		
-		//check user interrupt approx every 500 iterations
-		if ((r*thin2) % 500 == 0) Rcpp::checkUserInterrupt();
+		//check user interrupt every so often
+		if (r % 200 == 0) Rcpp::checkUserInterrupt();
 	}
 	
 
