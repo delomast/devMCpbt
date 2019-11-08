@@ -4,11 +4,11 @@
 \alias{flex_negllh_var}
 \title{calculate the negative log-likelihood with PBT, GSI (optional), and one other categorical variable}
 \usage{
-flex_negllh_var(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, pbtGSIkey,
-  utVar, ohnc_var, varKey, nCat)
+flex_negllh_var(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, utVar,
+  ohnc_var, nCat)
 }
 \arguments{
-\item{params}{list of paramaters to optimize}
+\item{params}{vector of paramaters to optimize}
 
 \item{nPBT}{number of pbt groups to estimate}
 
@@ -22,15 +22,9 @@ flex_negllh_var(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi, pbtGSIkey,
 
 \item{ohnc_gsi}{matrix of counts of fish GSI assigned to various groups}
 
-\item{pbtGSIkey}{list with a vector telling which GSI groups (as integers giving their position in the order) are nonzero for
-each PBT group}
-
 \item{utVar}{matrix of numbers of un-PBT assigned fish in each GSI group (row) x category of the variable (column)}
 
 \item{ohnc_var}{matrix of counts of PBT-assigned fish in each category (rows are PBT groups)}
-
-\item{varKey}{list of vectors telling which categories (as integers giving their position in the order) are nonzero for each PBT
-and GSI group}
 
 \item{nCat}{the numbers of categories in the variable}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/prepStrata.R
 \name{prepStrata}
 \alias{prepStrata}
-\title{This function prepares the data to run multiple strata}
+\title{This function prepares data to run multiple strata}
 \usage{
 prepStrata(trapData, tags, GSIcol, PBTcol, strataCol, variableCols = c(),
   variableColsOth = c(), adFinCol, AI = TRUE, GSIgroups = NA,
@@ -43,9 +43,7 @@ groups are assumed to be 0).}
 \item{variableValuesOth}{Same as variableValues, but for variableColsOth}
 
 \item{symPrior}{All the priors are Dirichlet distributions. The default is to use this value for all the alphas of all
-the priors. You can manually adjust the priors prior to running the MCMC chain, if desired. It is strongly suggested to at least manually 
-adjust the \code{prior_pi_gsi}. If you have a large number of GSI/PBT groups relative to the number of observations in each
-PBT group, using the default prior can be more informative than you may intend.}
+the priors. You can, and are encouraged to, manually adjust the priors as you see fit prior to running the MCMC chain.}
 
 \item{verbose}{TRUE to print some messages, FALSE to not}
 }

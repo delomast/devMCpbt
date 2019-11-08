@@ -32,5 +32,7 @@ and a warning is issued.}
 \item{...}{other arguments to pass to \code{optim}}
 }
 \description{
-The likelihood is maximized using \code{optim} and some typically close, but quick to calculate, starting values
+The likelihood is maximized using \code{optim} and some typically close, but quick to calculate, starting values.
+If estimating composition of a separate variable, all samples with missing data for this variable must be removed
+prior to running this function.
 }

@@ -2,15 +2,15 @@
 % Please edit documentation in R/estimStrataMCpbt.R
 \name{estimStrataMCpbt}
 \alias{estimStrataMCpbt}
-\title{This function uses the input created by \code{prepMultStrata} to estimate the
-proportion of fish that are clipped for each strata.}
+\title{This function uses the input created by \code{prepStrata} to estimate the
+composistion of each strata.}
 \usage{
 estimStrataMCpbt(prepData, iter, burnIn, thin = 1, seed = NA)
 }
 \arguments{
 \item{prepData}{The output of \code{prepStrat} with priors and initial values modified as you see fit}
 
-\item{iter}{The total number of iterations to run each strata, includign burn-in iterations}
+\item{iter}{The total number of iterations to run each strata, including burn-in iterations}
 
 \item{burnIn}{The number of burn-in iterations}
 
@@ -19,5 +19,5 @@ estimStrataMCpbt(prepData, iter, burnIn, thin = 1, seed = NA)
 \item{seed}{a positive integer to seed the random number generator. If not specified, chosen based on the current time.}
 }
 \description{
-A wrapper for \code{MCpbt}
+A wrapper for \code{MCpbt}. This function is used to run the MCMC chain and produce estimates.
 }
