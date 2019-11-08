@@ -579,10 +579,12 @@ pbtGSImat <- matrix(c(.1, .8, .1,.8, .1, .1,.1, .1, .8), nrow = 3, ncol = 3, byr
 multStratData <- data.frame()
 tempDataAll <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.7, .1,.9), physTagRates = 0,
 			    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1,2,1), PBT_GSI_calls = pbtGSImat, varMatList = varMat)
+# tempDataAll <- generatePBTGSIdata(sampRate = .2, censusSize = 3000, relSizePBTgroups = c(1,2,3), tagRates = c(.7, .1,.9), physTagRates = 0,
+# 			    true_clipped = 0, true_noclip_H = .3, true_wild = .7, relSizeGSIgroups = c(1), PBT_GSI_calls = matrix(1, nrow=3, ncol=1), varMatList = varMat)
 tempData <- tempDataAll[[1]]
 tempData$StrataVar <- 1
 multStratData <- rbind(multStratData, tempData)
-
+multStratData$GSI <- paste0("GSI_", multStratData$GSI)
 tags <- tempDataAll[[2]]
 
 table(multStratData$GenParentHatchery, multStratData$GSI)
@@ -594,9 +596,18 @@ table(multStratData$GenParentHatchery)[1:3] / tags[,2] / nrow(multStratData)
 
 # multStratData[multStratData$GenParentHatchery == "Unassigned", "GSI"] <- "GSIgroup2" 
 
+MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "BFGS", variableCols = c(), gr = params_grad, control = list(maxit = 10000, trace = 1))
+
+MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "L-BFGS-B", variableCols = c(), gr = params_grad, lower=10^-24, control = list(maxit = 10000, trace = 1))
+
+MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
+			  optimMethod = "BFGS", variableCols = c(), control = list(maxit = 10000, trace = 1))
+
 #no variable
 MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 
-			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 10000))[[1]]
+			  optimMethod = "Nelder-Mead", variableCols = c(), control = list(maxit = 10000, trace = 1))
 
 #with variable
 MLEwrapper(multStratData, tags, "GSI", "GenParentHatchery", "StrataVar", adFinCol = "AdClip", AI = TRUE, 

@@ -2,12 +2,12 @@
 #' 
 #' this function does not allow another variable. for that, see \code{flex_negllh_var}
 #' 
-#' @param params list of paramaters to optimize
+#' @param params vector of paramaters to optimize
 #' @param nPBT number of PBT groups to estimate
 #' @param nGSI number of GSI groups to estimate
-#' @param ohnc list of number of observed (PBT assigned) hatchery fish in each PBT and GSI group (gsi groups should be 0)
-#' @param t list of tag rates for all PBT and GSI groups (gsi groups should be 0)
-#' @param utGSI list of number of un-PBT assigned fish in each GSI group
+#' @param ohnc vector of number of observed (PBT assigned) hatchery fish in each PBT and GSI group (gsi groups should be 0)
+#' @param t vector of tag rates for all PBT and GSI groups (gsi groups should be 0)
+#' @param utGSI vector of number of un-PBT assigned fish in each GSI group
 #' @param ohnc_gsi matrix of counts of fish GSI assigned to various groups
 #'  
 
@@ -16,6 +16,7 @@ flex_negllh_allGSI <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi){
 	#piTot
 	piTot <- params[1:(nPBT + nGSI)]
 	piTot <- piTot / sum(piTot) #transform into proportions
+	# print(piTot)
 	if(sum(piTot < 0 | piTot > 1) != 0) return(Inf)
 	#piGSI
 	# piGSItemp <- matrix(params[(nPBT + nGSI):length(params)], nrow = (nPBT), ncol = (nGSI-1), byrow = TRUE)
@@ -26,6 +27,7 @@ flex_negllh_allGSI <- function(params, nPBT, nGSI, ohnc, t, utGSI, ohnc_gsi){
 			piGSItemp[i,] <- subParams[1:nGSI]
 			subParams <- subParams[(nGSI + 1):length(subParams)] #bump entries forward
 			piGSItemp[i,] <- piGSItemp[i,] / sum(piGSItemp[i,]) #normalize
+			# print(piGSItemp[i,])
 			if(sum(piGSItemp[i,] < 0 | piGSItemp[i,] > 1) != 0) return(Inf) #make sure all entries are valid
 		}
 	}

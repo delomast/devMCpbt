@@ -2,7 +2,7 @@
 #' 
 #' more here?
 #' 
-#' @param params list of paramaters to optimize
+#' @param params vector of paramaters to optimize
 #' @param nPBT number of pbt groups to estimate
 #' @param nGSI number of GSI groups to estimate
 #' @param ohnc vector of number of observed (PBT assigned) hatchery fish in each PBT and GSI group (gsi groups should be 0)

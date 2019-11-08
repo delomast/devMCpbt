@@ -77,12 +77,13 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 
 		#for piGSI
 		start_piGSI <- c()
-		for(i in 1:nrow(ohnc_gsi)){
-			temp <- ohnc_gsi[i,] #just use ohnc assignments
-			temp[temp < 1] <- .1
-			start_piGSI <- c(start_piGSI, temp)
+		if(nPBT > 0){
+			for(i in 1:nrow(ohnc_gsi)){
+				temp <- ohnc_gsi[i,] #just use ohnc assignments
+				temp[temp < 1] <- .1
+				start_piGSI <- c(start_piGSI, temp)
+			}
 		}
-		
 		#for piVar
 		start_piVar <- c()
 		if(varBool){
@@ -110,13 +111,18 @@ MLEwrapper <- function(trapData, tags, GSIcol, PBTcol, strataCol, adFinCol, AI =
 					 nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi,
 					 utVar = utVar, ohnc_var = ohnc_var, nCat = nCat)
 		} else {
+			
+			# print(numDeriv::grad(function(u) flex_negllh_allGSI(u, nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi), 
+			# 					c(start_piTot, start_piGSI))) #testing gradient function
+			
 			tempFit <- optim(c(start_piTot, start_piGSI), flex_negllh_allGSI, method = optimMethod, ...,
 								 #arguments to pass to flex_negllh
 								 nPBT = nPBT, nGSI = nGSI, ohnc = ohnc, t = t, utGSI = utGSI, ohnc_gsi = ohnc_gsi)
+			# print(tempFit) #testing
 		}
 		if(tempFit$convergence != 0) cat("\nOptimizer gave convergence code of", tempFit$convergence, "in strata", input$strataName, "\n")
 		
-		# return(tempFit)
+		# return(tempFit) #testing
 
 
 		#unpack values
